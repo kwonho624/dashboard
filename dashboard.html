@@ -7,111 +7,135 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg:#0d1117; --surface:#161b22; --surface2:#1c2333;
-  --border:#30363d; --text:#e6edf3; --sub:#8b949e;
-  --blue:#58a6ff; --green:#3fb950; --yellow:#d29922;
-  --red:#f85149; --cyan:#39c5cf; --purple:#bc8cff; --orange:#ff8c42;
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#f0f2f5;
+  --border:#e1e4e8; --text:#1a1f2e; --sub:#6b7280;
+  --blue:#2563eb; --green:#16a34a; --yellow:#d97706;
+  --red:#dc2626; --cyan:#0891b2; --purple:#7c3aed; --orange:#ea580c;
+  --blue-light:#dbeafe; --green-light:#dcfce7; --yellow-light:#fef3c7;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:14px;}
 
+/* 헤더 */
 .hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:13px 24px;background:var(--surface);border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:200;}
-.hdr-title{font-size:15px;font-weight:700;color:var(--blue);}
-.hdr-r{display:flex;align-items:center;gap:14px;}
+  padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200;box-shadow:var(--shadow);}
+.hdr-title{font-size:15px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;}
+.hdr-r{display:flex;align-items:center;gap:12px;}
 .upd{font-size:12px;color:var(--sub);}
-.btn-ref{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:5px 13px;border-radius:6px;cursor:pointer;font-size:12px;transition:.2s;}
-.btn-ref:hover{background:var(--border);}
+.btn-ref{background:var(--blue);border:none;color:#fff;
+  padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;}
+.btn-ref:hover{background:#1d4ed8;}
 
+/* 탭 */
 .tab-bar{display:flex;padding:0 24px;background:var(--surface);
-  border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab-btn{padding:10px 18px;background:none;border:none;color:var(--sub);
-  cursor:pointer;font-size:13px;border-bottom:2px solid transparent;
-  transition:.2s;white-space:nowrap;flex-shrink:0;}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+  border-bottom:2px solid var(--border);overflow-x:auto;}
+.tab-btn{padding:11px 20px;background:none;border:none;color:var(--sub);
+  cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid transparent;
+  margin-bottom:-2px;transition:.2s;white-space:nowrap;flex-shrink:0;}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700;}
 .tab-btn:hover:not(.active){color:var(--text);}
 
-.content{padding:18px 24px;}
+/* 컨텐츠 */
+.content{padding:20px 24px;}
 .panel{display:none;}.panel.active{display:block;}
 
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  padding:15px;border-top:2px solid transparent;}
-.kpi.blue{border-top-color:var(--blue);}.kpi.yellow{border-top-color:var(--yellow);}
-.kpi.cyan{border-top-color:var(--cyan);}.kpi.green{border-top-color:var(--green);}
-.kpi.purple{border-top-color:var(--purple);}
-.kpi-lbl{font-size:11px;color:var(--sub);margin-bottom:7px;}
-.kpi-val{font-size:26px;font-weight:700;}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;box-shadow:var(--shadow);border-left:4px solid transparent;}
+.kpi.blue{border-left-color:var(--blue);}.kpi.yellow{border-left-color:var(--yellow);}
+.kpi.cyan{border-left-color:var(--cyan);}.kpi.green{border-left-color:var(--green);}
+.kpi.purple{border-left-color:var(--purple);}
+.kpi-lbl{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-val{font-size:24px;font-weight:800;}
 .kpi.blue .kpi-val{color:var(--blue);}.kpi.yellow .kpi-val{color:var(--yellow);}
 .kpi.cyan .kpi-val{color:var(--cyan);}.kpi.green .kpi-val{color:var(--green);}
 .kpi.purple .kpi-val{color:var(--purple);}
 
-.sec{background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  margin-bottom:16px;overflow:hidden;}
+/* 섹션 */
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);}
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:11px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
-.sec-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;}
+  padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2);
+  flex-wrap:wrap;gap:8px;}
+.sec-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;color:var(--text);}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;}
 .sec-body{padding:16px;}
 
+/* 테이블 */
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-th{text-align:left;font-size:11px;color:var(--sub);font-weight:600;
-  padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
-td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap;}
+th{text-align:left;font-size:11px;color:var(--sub);font-weight:700;
+  padding:8px 12px;border-bottom:2px solid var(--border);white-space:nowrap;
+  background:var(--surface2);text-transform:uppercase;letter-spacing:.4px;}
+td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
-tr:hover td{background:var(--surface2);}
+tr:hover td{background:#f8faff;}
 .bold{font-weight:700;}.num{text-align:right;font-variant-numeric:tabular-nums;}
-.loading{color:var(--sub);font-size:13px;padding:14px;text-align:center;}
-.err{color:var(--red);font-size:12px;padding:10px 16px;}
+.loading{color:var(--sub);font-size:13px;padding:20px;text-align:center;}
 
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
-.bw{background:rgba(210,153,34,.15);color:var(--yellow);}
-.bd{background:rgba(63,185,80,.15);color:var(--green);}
-.bc{background:rgba(88,166,255,.15);color:var(--blue);}
+/* 뱃지 */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.bw{background:#fef3c7;color:#92400e;}
+.bd{background:#dcfce7;color:#166534;}
+.bc{background:#dbeafe;color:#1e40af;}
 
+/* 토글 */
 .tgl{display:flex;}
-.tgl-btn{padding:4px 13px;border:1px solid var(--border);background:none;
-  color:var(--sub);font-size:12px;cursor:pointer;transition:.2s;}
+.tgl-btn{padding:5px 14px;border:1px solid var(--border);background:var(--surface);
+  color:var(--sub);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;}
 .tgl-btn:first-child{border-radius:6px 0 0 6px;}
 .tgl-btn:last-child{border-radius:0 6px 6px 0;border-left:none;}
 .tgl-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
 
+/* 필터 */
 .frow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  padding:4px 9px;border-radius:6px;font-size:12px;cursor:pointer;}
+select{background:var(--surface);border:1px solid var(--border);color:var(--text);
+  padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;}
 
-.chart-full{background:var(--surface);border:1px solid var(--border);
-  border-radius:8px;padding:16px;margin-bottom:14px;}
-.chart-title-row{display:flex;align-items:flex-start;justify-content:space-between;
-  margin-bottom:12px;flex-wrap:wrap;gap:8px;}
-.chart-main-title{font-size:13px;font-weight:600;color:var(--text);}
+/* 차트 그리드 */
+.cgrid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.cgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.cbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;box-shadow:var(--shadow);}
+.ctitle{font-size:12px;color:var(--text);font-weight:700;margin-bottom:4px;}
+.csub{font-size:11px;color:var(--sub);margin-bottom:10px;}
+.cwrap{position:relative;height:200px;}
+.cwrap-lg{position:relative;height:240px;}
 
-.legend-row{display:flex;gap:16px;flex-wrap:wrap;}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
-.legend-bar{width:14px;height:10px;border-radius:2px;}
+/* 범례 */
+.leg-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub);}
+.leg-bar{width:14px;height:10px;border-radius:2px;flex-shrink:0;}
+.leg-line{width:22px;height:2px;position:relative;flex-shrink:0;}
+.leg-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:7px;height:7px;border-radius:50%;}
 
-.axis-left{font-size:11px;color:var(--cyan);}
-.axis-right{font-size:11px;color:var(--orange);}
+/* 축 레이블 */
+.axis-row{display:flex;justify-content:space-between;margin-bottom:6px;}
+.ax-l{font-size:11px;font-weight:600;}
+.ax-r{font-size:11px;font-weight:600;}
 
-.cwrap{position:relative;height:260px;}
-.cwrap-lg{position:relative;height:300px;}
-.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-
+/* UPH 색상 */
 .g{color:var(--green);font-weight:700;}
 .y{color:var(--yellow);font-weight:700;}
 .r{color:var(--red);font-weight:700;}
 
-.tag-h{display:inline-block;background:rgba(255,140,66,.15);color:var(--orange);
-  font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;}
-.tag-s{display:inline-block;background:rgba(88,166,255,.12);color:var(--blue);
-  font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px;}
+/* 태그 */
+.tag-h{display:inline-block;background:#ffedd5;color:var(--orange);
+  font-size:10px;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:700;}
+.tag-s{display:inline-block;background:#dbeafe;color:var(--blue);
+  font-size:10px;padding:1px 7px;border-radius:10px;margin-left:3px;font-weight:700;}
 
+/* 구분선 */
+.divider{height:1px;background:var(--border);margin:16px 0;}
+
+@media(max-width:1100px){.cgrid3{grid-template-columns:1fr 1fr;}}
 @media(max-width:900px){
   .kpi-row{grid-template-columns:repeat(3,1fr);}
-  .cgrid{grid-template-columns:1fr;}
+  .cgrid2,.cgrid3{grid-template-columns:1fr;}
 }
 @media(max-width:600px){
   .kpi-row{grid-template-columns:repeat(2,1fr);}
@@ -121,6 +145,7 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
 </head>
 <body>
 
+<!-- 헤더 -->
 <div class="hdr">
   <div class="hdr-title">📊 생산성 대시보드</div>
   <div class="hdr-r">
@@ -129,6 +154,7 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
   </div>
 </div>
 
+<!-- 탭 -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="sw('today',this)">오늘 현황</button>
   <button class="tab-btn" onclick="sw('person',this)">담당자별 집계</button>
@@ -137,9 +163,12 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
 
 <div class="content">
 
-<!-- ══ 오늘 현황 ══ -->
+<!-- ═══════════════════════════════
+     오늘 현황
+═══════════════════════════════ -->
 <div class="panel active" id="tab-today">
 
+  <!-- KPI -->
   <div class="kpi-row">
     <div class="kpi blue"><div class="kpi-lbl">오늘 업무</div><div class="kpi-val" id="k-tot">-</div></div>
     <div class="kpi yellow"><div class="kpi-lbl">대기</div><div class="kpi-val" id="k-wait">-</div></div>
@@ -148,10 +177,9 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
     <div class="kpi purple"><div class="kpi-lbl">물량</div><div class="kpi-val" id="k-qty">-</div></div>
   </div>
 
+  <!-- 인원별 상태 -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title"><span class="dot"></span>인원별 상태</div>
-    </div>
+    <div class="sec-hdr"><div class="sec-title"><span class="dot"></span>인원별 상태</div></div>
     <div class="sec-body"><div class="tw">
       <table>
         <thead><tr><th>이름</th><th>업무 현황</th><th>상세 내용</th><th>상태</th></tr></thead>
@@ -163,43 +191,35 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
   <!-- 차트1: 업무 카테고리별 생산성 -->
   <div class="sec">
     <div class="sec-hdr">
-      <div class="sec-title">
-        <span class="dot" style="background:var(--cyan)"></span>
-        업무 카테고리별 생산성
-      </div>
+      <div class="sec-title"><span class="dot" style="background:var(--cyan)"></span>업무 카테고리별 생산성</div>
       <div class="frow">
         <div class="tgl">
           <button class="tgl-btn active" id="pd-mb" onclick="setPdMode('month')">월별</button>
           <button class="tgl-btn" id="pd-yb" onclick="setPdMode('year')">연별</button>
         </div>
-        <select id="pd-sel" onchange="renderProdChart()">
-          <option value="all">전체</option>
-        </select>
+        <select id="pd-sel" onchange="renderProdChart()"><option value="all">전체</option></select>
       </div>
     </div>
     <div class="sec-body">
-      <div class="chart-title-row">
-        <div>
-          <div class="legend-row">
-            <div class="legend-item">
-              <div class="legend-bar" style="background:#58a6ff99;border:1px solid #58a6ff"></div>
-              <span style="color:#58a6ff">인당 생산성</span>
-              <span style="color:var(--sub)">(좌축 · 물량/인)</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-bar" style="background:#ff8c4299;border:1px solid #ff8c42"></div>
-              <span style="color:#ff8c42">시간당 생산성 UPH</span>
-              <span style="color:var(--sub)">(우축 · 물량/h)</span>
-            </div>
-          </div>
+      <div class="axis-row">
+        <div class="ax-l" style="color:var(--blue)">← 좌축: 인당 생산성 (물량/인)</div>
+        <div class="ax-r" style="color:var(--orange)">우축: UPH (물량/h) →</div>
+      </div>
+      <div class="leg-row">
+        <div class="leg-item">
+          <div class="leg-bar" style="background:#2563eb99;border:1.5px solid #2563eb"></div>
+          <span style="color:var(--blue);font-weight:600;">인당 생산성</span>
+          <span>(좌축)</span>
         </div>
-        <div style="text-align:right">
-          <div class="axis-left">← 좌축: 인당 생산성</div>
-          <div class="axis-right">우축: UPH →</div>
+        <div class="leg-item">
+          <div class="leg-bar" style="background:#ea580c99;border:1.5px solid #ea580c"></div>
+          <span style="color:var(--orange);font-weight:600;">시간당 생산성 UPH</span>
+          <span>(우축)</span>
         </div>
       </div>
       <div class="cwrap-lg"><canvas id="c-prod"></canvas></div>
-      <div class="tw" style="margin-top:16px;">
+      <div class="divider"></div>
+      <div class="tw">
         <table>
           <thead><tr>
             <th>카테고리</th>
@@ -216,68 +236,55 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
     </div>
   </div>
 
-  <!-- 차트2: 월별 인원 투입 -->
+  <!-- 차트2: 월별 인원 투입 (같은 행에 2개) -->
   <div class="sec">
-    <div class="sec-hdr">
-      <div class="sec-title">
-        <span class="dot" style="background:var(--orange)"></span>
-        월별 인원 투입 현황
-      </div>
-    </div>
+    <div class="sec-hdr"><div class="sec-title"><span class="dot" style="background:var(--orange)"></span>월별 인원 투입 현황</div></div>
     <div class="sec-body">
-      <div class="cgrid">
-        <div class="chart-full" style="margin-bottom:0;">
-          <div class="chart-title-row">
-            <div>
-              <div class="chart-main-title">👥 월별 투입 인원 수</div>
-              <div class="legend-row" style="margin-top:6px;">
-                <div class="legend-item">
-                  <div class="legend-bar" style="background:#58a6ff99;border:1px solid #58a6ff"></div>
-                  <span style="color:#58a6ff">스탭</span><span style="color:var(--sub)">(좌축·명)</span>
-                </div>
-                <div class="legend-item">
-                  <div style="width:20px;height:2px;background:#ff8c42;position:relative;">
-                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-                      width:7px;height:7px;border-radius:50%;background:#ff8c42;"></div>
-                  </div>
-                  <span style="color:#ff8c42">헬퍼</span><span style="color:var(--sub)">(우축·명)</span>
-                </div>
-              </div>
+      <div class="cgrid2">
+
+        <!-- 투입 인원 수 -->
+        <div class="cbox">
+          <div class="ctitle">👥 월별 투입 인원 수</div>
+          <div class="csub">막대: 스탭 인원 (좌축) &nbsp;|&nbsp; 선: 헬퍼 인원 (우축)</div>
+          <div class="leg-row">
+            <div class="leg-item">
+              <div class="leg-bar" style="background:#2563eb88;border:1.5px solid #2563eb"></div>
+              <span style="color:var(--blue);font-weight:600;">스탭</span><span>(좌·명)</span>
             </div>
-            <div style="text-align:right;font-size:11px;">
-              <div style="color:#58a6ff">← 스탭</div>
-              <div style="color:#ff8c42">헬퍼 →</div>
+            <div class="leg-item">
+              <div class="leg-line" style="background:var(--orange);">
+                <div class="leg-dot" style="background:var(--orange);"></div>
+              </div>
+              <span style="color:var(--orange);font-weight:600;">헬퍼</span><span>(우·명)</span>
             </div>
           </div>
           <div class="cwrap"><canvas id="c-mpCnt"></canvas></div>
         </div>
-        <div class="chart-full" style="margin-bottom:0;">
-          <div class="chart-title-row">
-            <div>
-              <div class="chart-main-title">⏱ 월별 투입 시간</div>
-              <div class="legend-row" style="margin-top:6px;">
-                <div class="legend-item">
-                  <div class="legend-bar" style="background:#3fb95099;border:1px solid #3fb950"></div>
-                  <span style="color:#3fb950">스탭</span><span style="color:var(--sub)">(좌축·h)</span>
-                </div>
-                <div class="legend-item">
-                  <div style="width:20px;height:2px;background:#d29922;position:relative;">
-                    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-                      width:7px;height:7px;border-radius:50%;background:#d29922;"></div>
-                  </div>
-                  <span style="color:#d29922">헬퍼</span><span style="color:var(--sub)">(우축·h)</span>
-                </div>
-              </div>
+
+        <!-- 투입 시간 -->
+        <div class="cbox">
+          <div class="ctitle">⏱ 월별 투입 시간</div>
+          <div class="csub">막대: 스탭 시간 (좌축) &nbsp;|&nbsp; 선: 헬퍼 시간 (우축)</div>
+          <div class="leg-row">
+            <div class="leg-item">
+              <div class="leg-bar" style="background:#16a34a88;border:1.5px solid #16a34a"></div>
+              <span style="color:var(--green);font-weight:600;">스탭</span><span>(좌·h)</span>
             </div>
-            <div style="text-align:right;font-size:11px;">
-              <div style="color:#3fb950">← 스탭</div>
-              <div style="color:#d29922">헬퍼 →</div>
+            <div class="leg-item">
+              <div class="leg-line" style="background:var(--yellow);">
+                <div class="leg-dot" style="background:var(--yellow);"></div>
+              </div>
+              <span style="color:var(--yellow);font-weight:600;">헬퍼</span><span>(우·h)</span>
             </div>
           </div>
           <div class="cwrap"><canvas id="c-mpHrs"></canvas></div>
         </div>
-      </div>
-      <div class="tw" style="margin-top:4px;">
+
+      </div><!-- /cgrid2 -->
+
+      <!-- 인원 투입 테이블 -->
+      <div class="divider"></div>
+      <div class="tw">
         <table>
           <thead><tr>
             <th>월</th>
@@ -296,7 +303,9 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
 
 </div><!-- /tab-today -->
 
-<!-- ══ 담당자별 집계 ══ -->
+<!-- ═══════════════════════════════
+     담당자별 집계
+═══════════════════════════════ -->
 <div class="panel" id="tab-person">
   <div class="sec">
     <div class="sec-hdr">
@@ -317,26 +326,34 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
           <th style="text-align:right">투입 시간(h)</th>
           <th style="text-align:right">UPH</th>
           <th style="text-align:right">완료 건수</th>
-          <th style="text-align:right">인건비</th>
-          <th style="text-align:right">단위당 비용</th>
+          <th style="text-align:right">인건비(원)</th>
+          <th style="text-align:right">단위당 비용(원)</th>
         </tr></thead>
         <tbody id="pe-tb"><tr><td colspan="8" class="loading">로딩 중...</td></tr></tbody>
       </table>
     </div></div>
   </div>
-  <div class="cgrid">
-    <div class="chart-full" style="margin-bottom:0;">
-      <div class="chart-main-title" style="margin-bottom:10px;">완료 물량 (담당자별)</div>
+
+  <!-- 차트 3개: 완료물량 | 투입시간 | UPH -->
+  <div class="cgrid3">
+    <div class="cbox">
+      <div class="ctitle">📦 완료 물량 (담당자별)</div>
       <div class="cwrap"><canvas id="c-peQty"></canvas></div>
     </div>
-    <div class="chart-full" style="margin-bottom:0;">
-      <div class="chart-main-title" style="margin-bottom:10px;">투입 시간 (담당자별)</div>
+    <div class="cbox">
+      <div class="ctitle">⏱ 투입 시간 (담당자별)</div>
       <div class="cwrap"><canvas id="c-peHrs"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ctitle">⚡ UPH (담당자별)</div>
+      <div class="cwrap"><canvas id="c-peUph"></canvas></div>
     </div>
   </div>
 </div>
 
-<!-- ══ 업무별 집계 ══ -->
+<!-- ═══════════════════════════════
+     업무별 집계
+═══════════════════════════════ -->
 <div class="panel" id="tab-task">
   <div class="sec">
     <div class="sec-hdr">
@@ -358,43 +375,41 @@ select{background:var(--surface2);border:1px solid var(--border);color:var(--tex
           <th style="text-align:right">총 완료 물량</th>
           <th style="text-align:right">총 투입 시간(h)</th>
           <th style="text-align:right">평균 UPH</th>
-          <th style="text-align:right">총 인건비</th>
-          <th style="text-align:right">단위당 비용</th>
+          <th style="text-align:right">총 인건비(원)</th>
+          <th style="text-align:right">단위당 비용(원)</th>
         </tr></thead>
         <tbody id="tk-tb"><tr><td colspan="8" class="loading">로딩 중...</td></tr></tbody>
       </table>
     </div></div>
   </div>
-  <div class="cgrid">
-    <div class="chart-full" style="margin-bottom:0;">
-      <div class="chart-main-title" style="margin-bottom:10px;">총 완료 물량 (업무별)</div>
+
+  <!-- 차트 3개: 완료물량 | 투입시간 | 평균UPH -->
+  <div class="cgrid3">
+    <div class="cbox">
+      <div class="ctitle">📦 총 완료 물량 (업무별)</div>
       <div class="cwrap"><canvas id="c-tkQty"></canvas></div>
     </div>
-    <div class="chart-full" style="margin-bottom:0;">
-      <div class="chart-main-title" style="margin-bottom:10px;">평균 UPH (업무별)</div>
+    <div class="cbox">
+      <div class="ctitle">⏱ 총 투입 시간 (업무별)</div>
+      <div class="cwrap"><canvas id="c-tkHrs"></canvas></div>
+    </div>
+    <div class="cbox">
+      <div class="ctitle">⚡ 평균 UPH (업무별)</div>
       <div class="cwrap"><canvas id="c-tkUph"></canvas></div>
     </div>
   </div>
 </div>
 
-</div>
+</div><!-- /content -->
 
 <script>
 // ══════════════════════════════════
-// ★ 게시된 CSV URL (pubhtml 키 기반)
+// 설정 — 게시된 CSV URL (pub 키 기반)
 // ══════════════════════════════════
 const KEY1 = '2PACX-1vRUfMFSuffYkj3M6XO9bDj5lntIPZhvb6cjiFsdDM2ldKvSr-v6GQIQBmzPHy-3CObSBt01ERRqUJUG';
 const KEY2 = '2PACX-1vRJYHt_VTGuSO9zC2PtFkTp8uWe9qdtLMd5NADYk7VEFJrmbu4kESL0M-Eq37b1qZXrvg9tEBGMni0r';
-
-// pub?output=csv&gid= 형식 — 탭 GID 그대로 사용
-const pubCsv = (key, gid) =>
+const pub = (key, gid) =>
   `https://docs.google.com/spreadsheets/d/e/${key}/pub?output=csv&gid=${gid}&t=${Date.now()}`;
-
-const URLS = {
-  work1: pubCsv(KEY1, '1272922114'), // 1번시트 업무관리
-  work2: pubCsv(KEY2, '1908325385'), // 2번시트 업무관리
-  labor: pubCsv(KEY2, '1928958544'), // 2번시트 인건비
-};
 
 // 업무번호 → 카테고리
 const CAT = {
@@ -407,11 +422,12 @@ const CAT = {
 };
 const CAT_ORDER = ['반품','선작업','입고','출고','수출','청소'];
 const CAT_CLR = {
-  '반품':'#58a6ff','선작업':'#3fb950','입고':'#39c5cf',
-  '출고':'#bc8cff','수출':'#ff8c42','청소':'#d29922'
+  '반품':'#2563eb','선작업':'#16a34a','입고':'#0891b2',
+  '출고':'#7c3aed','수출':'#ea580c','청소':'#d97706'
 };
 const isHlp = n => (n||'').includes('헬퍼');
 
+// ── 전역 상태 ──
 let G = { rows:[], labor:[], pdMode:'month', peMode:'month', tkMode:'month' };
 let CH = {};
 
@@ -463,6 +479,7 @@ function rebuildSel(id, mode) {
   arr.forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
 }
 function uphCls(v){return v>=50?'g':v>=20?'y':'r';}
+function fmtNum(n){return n?n.toLocaleString():'-';}
 
 // ══════════════════════════════════
 // 로드
@@ -470,14 +487,17 @@ function uphCls(v){return v>=50?'g':v>=20?'y':'r';}
 async function loadAll() {
   document.getElementById('upd').textContent='로딩 중...';
   try {
-    // GID가 pub URL에서 달라질 수 있으므로 gid=0(첫탭)도 fallback으로 시도
     const [r1, r2, lab] = await Promise.all([
-      fetchCsv(URLS.work1),
-      fetchCsv(URLS.work2),
-      fetchCsv(URLS.labor).catch(()=>[])
+      fetchCsv(pub(KEY1,'1272922114')),   // 1번 업무관리
+      fetchCsv(pub(KEY2,'1908325385')),   // 2번 업무관리
+      fetchCsv(pub(KEY2,'1928958544')).catch(()=>[]) // 인건비
     ]);
     G.rows = [...r1, ...r2];
     G.labor = lab;
+
+    // 인건비 디버그 (콘솔 확인용)
+    console.log('인건비 행 수:', G.labor.length);
+    if(G.labor.length) console.log('인건비 1행 샘플:', G.labor[0]);
 
     rebuildSel('pd-sel', G.pdMode);
     rebuildSel('pe-sel', G.peMode);
@@ -496,6 +516,33 @@ async function loadAll() {
     console.error(e);
     document.getElementById('upd').textContent='❌ 로드 실패: '+e.message;
   }
+}
+
+// ══════════════════════════════════
+// 인건비 조회 헬퍼
+// 인건비 탭 구조에 맞게 이름 기준으로 합산
+// 실제 컬럼 구조에 따라 인덱스 조정 필요
+// ══════════════════════════════════
+function buildLaborByName() {
+  const lm={};
+  G.labor.forEach(r=>{
+    // 여러 컬럼 위치 시도: r[1](이름), r[3](금액) 또는 r[0](이름), r[2](금액)
+    const name = r[1]||r[0]||'';
+    const amt  = parseFloat((r[3]||r[2]||'').replace(/,/g,''))||0;
+    if(!name||!amt) return;
+    lm[name]=(lm[name]||0)+amt;
+  });
+  return lm;
+}
+function buildLaborByTask() {
+  const lm={};
+  G.labor.forEach(r=>{
+    const task = r[2]||r[1]||'';
+    const amt  = parseFloat((r[3]||r[2]||'').replace(/,/g,''))||0;
+    if(!task||!amt) return;
+    lm[task]=(lm[task]||0)+amt;
+  });
+  return lm;
 }
 
 // ══════════════════════════════════
@@ -529,7 +576,7 @@ function renderToday() {
 }
 
 // ══════════════════════════════════
-// 차트1: 카테고리별 생산성 이중축 막대
+// 차트1: 카테고리별 생산성 이중축
 // ══════════════════════════════════
 function setPdMode(m) {
   G.pdMode=m;
@@ -543,7 +590,7 @@ function renderProdChart() {
   const rows=filterRows(G.pdMode,period);
   const map={};
   rows.forEach(r=>{
-    const cat=getCat(r); const name=r[3];
+    const cat=getCat(r);const name=r[3];
     if(!map[cat])map[cat]={persons:new Set(),qty:0,hrs:0,cnt:0};
     if(name)map[cat].persons.add(name);
     map[cat].qty+=parseFloat(r[7])||0;
@@ -554,51 +601,45 @@ function renderProdChart() {
     .concat(Object.keys(map).filter(c=>!CAT_ORDER.includes(c)));
   const ppData  = cats.map(c=>map[c].persons.size>0?+(map[c].qty/map[c].persons.size).toFixed(1):0);
   const uphData = cats.map(c=>map[c].hrs>0?+(map[c].qty/map[c].hrs).toFixed(1):0);
+  const catClrs = cats.map(c=>CAT_CLR[c]||'#6b7280');
 
   if(CH['c-prod'])CH['c-prod'].destroy();
-  const ctx=document.getElementById('c-prod').getContext('2d');
-  CH['c-prod']=new Chart(ctx,{
+  CH['c-prod']=new Chart(document.getElementById('c-prod').getContext('2d'),{
     type:'bar',
     data:{
       labels:cats,
       datasets:[
         { label:'인당 생산성 (물량/인)', data:ppData,
-          backgroundColor:'#58a6ff66', borderColor:'#58a6ff',
-          borderWidth:1.5, borderRadius:4, yAxisID:'yLeft', order:2 },
+          backgroundColor:catClrs.map(c=>c+'55'), borderColor:catClrs,
+          borderWidth:2, borderRadius:5, yAxisID:'yLeft', order:2 },
         { label:'UPH (물량/h)', data:uphData,
-          backgroundColor:'#ff8c4266', borderColor:'#ff8c42',
-          borderWidth:1.5, borderRadius:4, yAxisID:'yRight', order:1 }
+          backgroundColor:'#ea580c66', borderColor:'#ea580c',
+          borderWidth:2, borderRadius:5, yAxisID:'yRight', order:1 }
       ]
     },
     options:{
-      responsive:true, maintainAspectRatio:false,
+      responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
-        tooltip:{
-          backgroundColor:'#1c2333',titleColor:'#e6edf3',bodyColor:'#8b949e',
-          callbacks:{label:ctx=>{
-            return ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}`;
-          }}
-        }
+        tooltip:{backgroundColor:'#fff',titleColor:'#1a1f2e',bodyColor:'#6b7280',
+          borderColor:'#e1e4e8',borderWidth:1,
+          callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}`}}
       },
       scales:{
-        x:{ticks:{color:'#8b949e',font:{size:12}},grid:{color:'#30363d'}},
+        x:{ticks:{color:'#6b7280',font:{size:12,weight:'600'}},grid:{color:'#f0f2f5'}},
         yLeft:{type:'linear',position:'left',
-          ticks:{color:'#58a6ff',font:{size:11}},grid:{color:'#30363d'},
-          title:{display:true,text:'인당 생산성 (물량/인)',color:'#58a6ff',font:{size:11}}},
+          ticks:{color:'#2563eb',font:{size:11}},grid:{color:'#f0f2f5'},
+          title:{display:true,text:'인당 생산성',color:'#2563eb',font:{size:11,weight:'600'}}},
         yRight:{type:'linear',position:'right',
-          ticks:{color:'#ff8c42',font:{size:11}},grid:{drawOnChartArea:false},
-          title:{display:true,text:'UPH (물량/h)',color:'#ff8c42',font:{size:11}}}
+          ticks:{color:'#ea580c',font:{size:11}},grid:{drawOnChartArea:false},
+          title:{display:true,text:'UPH',color:'#ea580c',font:{size:11,weight:'600'}}}
       }
     }
   });
 
   const tb=document.getElementById('prod-tb');
-  if(!cats.length){
-    tb.innerHTML='<tr><td colspan="7" class="loading">해당 기간 데이터 없음</td></tr>';
-    return;
-  }
+  if(!cats.length){tb.innerHTML='<tr><td colspan="7" class="loading">해당 기간 데이터 없음</td></tr>';return;}
   tb.innerHTML=cats.map((cat,i)=>{
     const d=map[cat];
     const uc=uphCls(uphData[i]);
@@ -615,37 +656,30 @@ function renderProdChart() {
 }
 
 // ══════════════════════════════════
-// 차트2: 월별 인원 투입 이중축 막대+선
+// 차트2: 월별 인원 투입 이중축 (막대+선)
 // ══════════════════════════════════
 function renderManpower() {
   const mmap={};
   G.rows.forEach(r=>{
     const d=parseDate(r);if(!d)return;
-    const m=d.month; const name=r[3]; const hrs=parseFloat(r[9])||0;
-    if(!name)return;
+    const m=d.month;const name=r[3];const hrs=parseFloat(r[9])||0;if(!name)return;
     if(!mmap[m])mmap[m]={stf:new Set(),hlp:new Set(),sh:0,hh:0};
     if(isHlp(name)){mmap[m].hlp.add(name);mmap[m].hh+=hrs;}
     else            {mmap[m].stf.add(name);mmap[m].sh+=hrs;}
   });
   const months=Object.keys(mmap).sort();
-  const stfCnt=months.map(m=>mmap[m].stf.size);
-  const hlpCnt=months.map(m=>mmap[m].hlp.size);
-  const stfHrs=months.map(m=>+mmap[m].sh.toFixed(1));
-  const hlpHrs=months.map(m=>+mmap[m].hh.toFixed(1));
 
-  buildDualChart('c-mpCnt', months,
-    {label:'스탭 인원(명)', data:stfCnt, barColor:'#58a6ff', leftTitle:'스탭 인원 (명)'},
-    {label:'헬퍼 인원(명)', data:hlpCnt, lineColor:'#ff8c42', rightTitle:'헬퍼 인원 (명)'});
-
-  buildDualChart('c-mpHrs', months,
-    {label:'스탭 시간(h)', data:stfHrs, barColor:'#3fb950', leftTitle:'스탭 시간 (h)'},
-    {label:'헬퍼 시간(h)', data:hlpHrs, lineColor:'#d29922', rightTitle:'헬퍼 시간 (h)'});
+  buildDualChart('c-mpCnt',months,
+    {label:'스탭 인원(명)',data:months.map(m=>mmap[m].stf.size),barColor:'#2563eb',leftTitle:'스탭 인원(명)'},
+    {label:'헬퍼 인원(명)',data:months.map(m=>mmap[m].hlp.size),lineColor:'#ea580c',rightTitle:'헬퍼 인원(명)'}
+  );
+  buildDualChart('c-mpHrs',months,
+    {label:'스탭 시간(h)',data:months.map(m=>+mmap[m].sh.toFixed(1)),barColor:'#16a34a',leftTitle:'스탭 시간(h)'},
+    {label:'헬퍼 시간(h)',data:months.map(m=>+mmap[m].hh.toFixed(1)),lineColor:'#d97706',rightTitle:'헬퍼 시간(h)'}
+  );
 
   const tb=document.getElementById('mp-tb');
-  if(!months.length){
-    tb.innerHTML='<tr><td colspan="7" class="loading">데이터 없음</td></tr>';
-    return;
-  }
+  if(!months.length){tb.innerHTML='<tr><td colspan="7" class="loading">데이터 없음</td></tr>';return;}
   tb.innerHTML=[...months].reverse().map(m=>{
     const d=mmap[m];
     return `<tr>
@@ -660,50 +694,44 @@ function renderManpower() {
   }).join('');
 }
 
-function buildDualChart(id, labels, barDs, lineDs) {
+function buildDualChart(id,labels,barDs,lineDs) {
   if(CH[id])CH[id].destroy();
-  const ctx=document.getElementById(id).getContext('2d');
-  CH[id]=new Chart(ctx,{
+  CH[id]=new Chart(document.getElementById(id).getContext('2d'),{
     type:'bar',
-    data:{
-      labels,
-      datasets:[
-        { type:'bar', label:barDs.label, data:barDs.data,
-          backgroundColor:barDs.barColor+'88', borderColor:barDs.barColor,
-          borderWidth:1.5, borderRadius:4, yAxisID:'yLeft', order:2 },
-        { type:'line', label:lineDs.label, data:lineDs.data,
-          borderColor:lineDs.lineColor, backgroundColor:lineDs.lineColor+'33',
-          borderWidth:2.5, pointBackgroundColor:lineDs.lineColor,
-          pointBorderColor:'#0d1117', pointBorderWidth:2,
-          pointRadius:5, pointHoverRadius:7,
-          fill:false, tension:0.3, yAxisID:'yRight', order:1 }
-      ]
-    },
+    data:{labels,datasets:[
+      { type:'bar',label:barDs.label,data:barDs.data,
+        backgroundColor:barDs.barColor+'66',borderColor:barDs.barColor,
+        borderWidth:2,borderRadius:5,yAxisID:'yLeft',order:2 },
+      { type:'line',label:lineDs.label,data:lineDs.data,
+        borderColor:lineDs.lineColor,backgroundColor:lineDs.lineColor+'22',
+        borderWidth:2.5,pointBackgroundColor:lineDs.lineColor,
+        pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7,
+        fill:false,tension:0.3,yAxisID:'yRight',order:1 }
+    ]},
     options:{
-      responsive:true, maintainAspectRatio:false,
+      responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:true,position:'top',align:'end',
-          labels:{color:'#8b949e',font:{size:11},usePointStyle:true,pointStyleWidth:12}},
-        tooltip:{backgroundColor:'#1c2333',titleColor:'#e6edf3',bodyColor:'#8b949e'}
+          labels:{color:'#6b7280',font:{size:11},usePointStyle:true,pointStyleWidth:12}},
+        tooltip:{backgroundColor:'#fff',titleColor:'#1a1f2e',bodyColor:'#6b7280',
+          borderColor:'#e1e4e8',borderWidth:1}
       },
       scales:{
-        x:{ticks:{color:'#8b949e',font:{size:11}},grid:{color:'#30363d'}},
-        yLeft:{type:'linear',position:'left',
-          ticks:{color:barDs.barColor,font:{size:11}},grid:{color:'#30363d'},
-          title:{display:true,text:barDs.leftTitle,color:barDs.barColor,font:{size:11}},
-          beginAtZero:true},
-        yRight:{type:'linear',position:'right',
+        x:{ticks:{color:'#6b7280',font:{size:11}},grid:{color:'#f0f2f5'}},
+        yLeft:{type:'linear',position:'left',beginAtZero:true,
+          ticks:{color:barDs.barColor,font:{size:11}},grid:{color:'#f0f2f5'},
+          title:{display:true,text:barDs.leftTitle,color:barDs.barColor,font:{size:11,weight:'600'}}},
+        yRight:{type:'linear',position:'right',beginAtZero:true,
           ticks:{color:lineDs.lineColor,font:{size:11}},grid:{drawOnChartArea:false},
-          title:{display:true,text:lineDs.rightTitle,color:lineDs.lineColor,font:{size:11}},
-          beginAtZero:true}
+          title:{display:true,text:lineDs.rightTitle,color:lineDs.lineColor,font:{size:11,weight:'600'}}}
       }
     }
   });
 }
 
 // ══════════════════════════════════
-// 담당자별 집계
+// 담당자별 집계 (차트 3개)
 // ══════════════════════════════════
 function setPeMode(m) {
   G.peMode=m;
@@ -717,24 +745,24 @@ function renderPerson() {
   const rows=filterRows(G.peMode,period);
   const map={};
   rows.forEach(r=>{
-    const name=r[3]; const task=r[2]||'미분류'; if(!name)return;
+    const name=r[3];const task=r[2]||'미분류';if(!name)return;
     const key=name+'||'+task;
     if(!map[key])map[key]={name,task,qty:0,hrs:0,cnt:0};
     map[key].qty+=parseFloat(r[7])||0;
     map[key].hrs+=parseFloat(r[9])||0;
     if(r[4]==='완료')map[key].cnt++;
   });
-  const lm={};
-  G.labor.forEach(r=>{const n=r[1];if(!n)return;lm[n]=(lm[n]||0)+(parseFloat(r[3])||0);});
+  const lm=buildLaborByName();
   const tb=document.getElementById('pe-tb');
   const ents=Object.values(map).sort((a,b)=>b.qty-a.qty);
+
   if(!ents.length){
     tb.innerHTML='<tr><td colspan="8" class="loading">해당 기간 데이터 없음</td></tr>';
   } else {
     tb.innerHTML=ents.map(d=>{
       const uph=d.hrs>0?(d.qty/d.hrs).toFixed(1):'-';
       const lab=lm[d.name]||0;
-      const uc=d.qty>0&&lab>0?(lab/d.qty).toFixed(0):'-';
+      const uc=d.qty>0&&lab>0?(lab/d.qty).toFixed(1):'-';
       const tag=isHlp(d.name)?'<span class="tag-h">헬퍼</span>':'<span class="tag-s">스탭</span>';
       return `<tr>
         <td class="bold">${d.name}${tag}</td><td>${d.task}</td>
@@ -742,22 +770,26 @@ function renderPerson() {
         <td class="num">${d.hrs.toFixed(1)}</td>
         <td class="num ${uph!=='-'?uphCls(parseFloat(uph)):''}">${uph}</td>
         <td class="num">${d.cnt}</td>
-        <td class="num">${lab?lab.toLocaleString()+'원':'-'}</td>
-        <td class="num">${uc!=='-'?uc+'원':'-'}</td>
+        <td class="num">${lab?lab.toLocaleString():'-'}</td>
+        <td class="num">${uc!=='-'?uc:'-'}</td>
       </tr>`;
     }).join('');
   }
+
+  // 이름별 합산
   const names=[...new Set(ents.map(d=>d.name))];
-  buildSimpleBar('c-peQty',names,
-    names.map(n=>ents.filter(d=>d.name===n).reduce((s,d)=>s+d.qty,0)),
-    '완료 물량',names.map(n=>isHlp(n)?'#ff8c42':'#58a6ff'));
-  buildSimpleBar('c-peHrs',names,
-    names.map(n=>ents.filter(d=>d.name===n).reduce((s,d)=>s+d.hrs,0)),
-    '투입 시간',names.map(n=>isHlp(n)?'#d29922':'#3fb950'));
+  const clrs=names.map(n=>isHlp(n)?'#ea580c':'#2563eb');
+  const qtys=names.map(n=>ents.filter(d=>d.name===n).reduce((s,d)=>s+d.qty,0));
+  const hrss=names.map(n=>ents.filter(d=>d.name===n).reduce((s,d)=>s+d.hrs,0));
+  const uphs=names.map((_,i)=>hrss[i]>0?+(qtys[i]/hrss[i]).toFixed(1):0);
+
+  buildSimpleBar('c-peQty',names,qtys,'완료 물량',clrs);
+  buildSimpleBar('c-peHrs',names,hrss,'투입 시간',names.map(n=>isHlp(n)?'#d97706':'#16a34a'));
+  buildSimpleBar('c-peUph',names,uphs,'UPH',names.map(n=>isHlp(n)?'#7c3aed':'#0891b2'));
 }
 
 // ══════════════════════════════════
-// 업무별 집계
+// 업무별 집계 (차트 3개)
 // ══════════════════════════════════
 function setTkMode(m) {
   G.tkMode=m;
@@ -771,61 +803,69 @@ function renderTask() {
   const rows=filterRows(G.tkMode,period);
   const map={};
   rows.forEach(r=>{
-    const task=r[2]||'미분류'; const name=r[3];
+    const task=r[2]||'미분류';const name=r[3];
     if(!map[task])map[task]={cnt:0,persons:new Set(),qty:0,hrs:0};
     if(name)map[task].persons.add(name);
     map[task].qty+=parseFloat(r[7])||0;
     map[task].hrs+=parseFloat(r[9])||0;
     if(r[4]==='완료')map[task].cnt++;
   });
-  const lm={};
-  G.labor.forEach(r=>{const t=r[2];if(!t)return;lm[t]=(lm[t]||0)+(parseFloat(r[3])||0);});
+  const lm=buildLaborByTask();
   const tb=document.getElementById('tk-tb');
   const ents=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty);
+
   if(!ents.length){
     tb.innerHTML='<tr><td colspan="8" class="loading">해당 기간 데이터 없음</td></tr>';
   } else {
     tb.innerHTML=ents.map(([t,d])=>{
       const uph=d.hrs>0?(d.qty/d.hrs).toFixed(1):'-';
-      const lab=lm[t]||0; const uc=d.qty>0&&lab>0?(lab/d.qty).toFixed(0):'-';
+      const lab=lm[t]||0;
+      const uc=d.qty>0&&lab>0?(lab/d.qty).toFixed(1):'-';
       return `<tr>
         <td class="bold">${t}</td>
         <td class="num">${d.cnt}</td><td class="num">${d.persons.size}명</td>
         <td class="num">${d.qty.toLocaleString()}</td><td class="num">${d.hrs.toFixed(1)}</td>
         <td class="num ${uph!=='-'?uphCls(parseFloat(uph)):''}">${uph}</td>
-        <td class="num">${lab?lab.toLocaleString()+'원':'-'}</td>
-        <td class="num">${uc!=='-'?uc+'원':'-'}</td>
+        <td class="num">${lab?lab.toLocaleString():'-'}</td>
+        <td class="num">${uc!=='-'?uc:'-'}</td>
       </tr>`;
     }).join('');
   }
-  buildSimpleBar('c-tkQty',ents.map(([t])=>t),ents.map(([,d])=>d.qty),'총 완료 물량','#bc8cff');
-  buildSimpleBar('c-tkUph',ents.map(([t])=>t),
-    ents.map(([,d])=>d.hrs>0?+(d.qty/d.hrs).toFixed(1):0),'평균 UPH','#39c5cf');
+
+  const labels=ents.map(([t])=>t);
+  const colors=['#2563eb','#16a34a','#0891b2','#7c3aed','#ea580c','#d97706','#db2777','#059669'];
+  const getClr=(i)=>colors[i%colors.length];
+
+  buildSimpleBar('c-tkQty',labels,ents.map(([,d])=>d.qty),'총 완료 물량',labels.map((_,i)=>getClr(i)));
+  buildSimpleBar('c-tkHrs',labels,ents.map(([,d])=>d.hrs),'총 투입 시간',labels.map((_,i)=>getClr(i)));
+  buildSimpleBar('c-tkUph',labels,
+    ents.map(([,d])=>d.hrs>0?+(d.qty/d.hrs).toFixed(1):0),'평균 UPH',labels.map((_,i)=>getClr(i)));
 }
 
 // ══════════════════════════════════
-// 단순 막대 차트
+// 단순 막대 차트 빌더
 // ══════════════════════════════════
 function buildSimpleBar(id,labels,data,label,colors){
   if(CH[id])CH[id].destroy();
-  const ctx=document.getElementById(id).getContext('2d');
   const isArr=Array.isArray(colors);
-  CH[id]=new Chart(ctx,{
+  CH[id]=new Chart(document.getElementById(id).getContext('2d'),{
     type:'bar',
     data:{labels,datasets:[{
       label,data,
-      backgroundColor:isArr?colors.map(c=>c+'99'):colors+'99',
-      borderColor:colors,borderWidth:1,borderRadius:4
+      backgroundColor:isArr?colors.map(c=>c+'66'):colors+'66',
+      borderColor:isArr?colors:colors,
+      borderWidth:2,borderRadius:5
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{display:true,labels:{color:'#8b949e',font:{size:11}}},
-        tooltip:{backgroundColor:'#1c2333',titleColor:'#e6edf3',bodyColor:'#8b949e'}
+        legend:{display:true,labels:{color:'#6b7280',font:{size:11}}},
+        tooltip:{backgroundColor:'#fff',titleColor:'#1a1f2e',bodyColor:'#6b7280',
+          borderColor:'#e1e4e8',borderWidth:1}
       },
       scales:{
-        x:{ticks:{color:'#8b949e',font:{size:11}},grid:{color:'#30363d'}},
-        y:{ticks:{color:'#8b949e',font:{size:11}},grid:{color:'#30363d'}}
+        x:{ticks:{color:'#6b7280',font:{size:11}},grid:{color:'#f0f2f5'}},
+        y:{ticks:{color:'#6b7280',font:{size:11}},grid:{color:'#f0f2f5'},beginAtZero:true}
       }
     }
   });
@@ -841,6 +881,9 @@ function sw(name,el){
   el.classList.add('active');
 }
 
+// ══════════════════════════════════
+// 시작
+// ══════════════════════════════════
 loadAll();
 setInterval(loadAll,5*60*1000);
 </script>
