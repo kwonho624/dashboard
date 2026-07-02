@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생산성 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#2563eb; --green:#16a34a; --orange:#ea580c;
+  --cyan:#0891b2; --purple:#7c3aed; --red:#dc2626;
+  --yellow:#ca8a04; --bg:#f1f5f9; --card:#fff;
+  --border:#e2e8f0; --text:#1e293b; --muted:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
+header{background:var(--blue);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;}
+header h1{font-size:17px;font-weight:700;}
+#lastUpdate{font-size:11px;opacity:.8;margin-left:auto;}
+#refreshBtn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;}
+#refreshBtn:hover{background:rgba(255,255,255,.35);}
+.tab-bar{background:#fff;border-bottom:2px solid var(--border);display:flex;padding:0 16px;}
+.tab-btn{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-panel{display:none;padding:16px;}
+.tab-panel.active{display:block;}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.kpi-card{background:var(--card);border-radius:10px;padding:14px 16px;border-left:4px solid var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.kpi-card .label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.kpi-card .value{font-size:22px;font-weight:800;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.one-col{margin-bottom:14px;}
+.card{background:var(--card);border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.filter-group{display:flex;gap:4px;margin-left:auto;}
+.f-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);}
+.f-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.month-select{display:none;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;background:#fff;}
+.month-select.visible{display:inline-block;}
+.chart-wrap{position:relative;height:200px;}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:3px;}
+.tbl-wrap{overflow-x:auto;margin-top:10px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#f8fafc;color:var(--muted);font-weight:600;padding:7px 8px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:6px 8px;text-align:center;border-bottom:1px solid #f1f5f9;}
+tr:hover td{background:#f8fafc;}
+.td-l{text-align:left;}
+.badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;}
+.b-wait{background:#fef9c3;color:#713f12;}
+.b-ing{background:#dbeafe;color:#1e40af;}
+.b-done{background:#dcfce7;color:#14532d;}
+.b-pause{background:#f3e8ff;color:#6b21a8;}
+.uph-good{color:var(--green);font-weight:700;}
+.uph-mid{color:var(--yellow);font-weight:700;}
+.uph-bad{color:var(--red);font-weight:700;}
+.person-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px;}
+.person-card{background:#f8fafc;border-radius:8px;padding:10px 12px;border-left:3px solid var(--cyan);}
+.person-card.has-pause{border-left-color:#7c3aed;}
+.person-card.has-ing{border-left-color:var(--cyan);}
+.person-card.has-wait{border-left-color:var(--yellow);}
+.person-card.all-done{border-left-color:var(--green);}
+.person-name{font-weight:700;font-size:13px;margin-bottom:4px;}
+.person-task{font-size:11px;color:var(--muted);}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.cal-nav-btn{padding:5px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);}
+.cal-nav-btn:hover{background:var(--bg);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--muted);padding:4px 0;}
+.cal-dow.sat{color:#2563eb;} .cal-dow.sun{color:#dc2626;}
+.cal-cell{min-height:100px;border:1px solid var(--border);border-radius:6px;padding:5px 6px;cursor:pointer;transition:box-shadow .15s,background .15s;background:#fff;position:relative;}
+.cal-cell:hover{box-shadow:0 2px 8px rgba(0,0,0,.12);background:#f8fafc;}
+.cal-cell.today{border-color:#2563eb;border-width:2px;}
+.cal-cell.other-month{background:#f7f7f7;opacity:.45;cursor:default;pointer-events:none;}
+.cal-cell.no-data{background:#f1f5f9;cursor:default;}
+.cal-cell.no-data:hover{box-shadow:none;background:#f1f5f9;}
+.cal-cell.holiday{background:#fff5f5;}
+.cal-cell.holiday:hover{background:#ffe4e4;}
+.cal-date{font-size:12px;font-weight:700;margin-bottom:2px;color:var(--text);display:flex;align-items:center;gap:4px;}
+.cal-date.sun{color:#dc2626;} .cal-date.sat{color:#2563eb;} .cal-date.hol{color:#dc2626;}
+.cal-holiday-name{font-size:9px;color:#dc2626;font-weight:600;background:#fee2e2;padding:1px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;margin-bottom:3px;}
+.cal-bar{display:flex;align-items:center;gap:3px;margin-bottom:2px;font-size:10px;line-height:1.3;}
+.cal-bar-dot{width:6px;height:6px;border-radius:2px;flex-shrink:0;}
+.cal-bar-label{color:var(--muted);white-space:nowrap;min-width:24px;}
+.cal-bar-vol{font-weight:700;white-space:nowrap;}
+.cal-bar-uph{font-size:9px;margin-left:2px;white-space:nowrap;}
+.uph-below{color:#dc2626;} .uph-above{color:#16a34a;}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.modal-overlay.on{display:flex;}
+.modal-box{background:#fff;border-radius:14px;width:100%;max-width:660px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;}
+.modal-body{overflow-y:auto;padding:14px 20px;}
+.modal-section{margin-bottom:16px;}
+.modal-section-title{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:5px;display:inline-block;margin-bottom:8px;}
+.modal-kpi-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.modal-kpi{background:#f8fafc;border-radius:8px;padding:8px 12px;flex:1;min-width:76px;}
+.modal-kpi .mk-label{font-size:10px;color:var(--muted);}
+.modal-kpi .mk-val{font-size:15px;font-weight:800;}
+.modal-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.modal-tbl th{background:#f8fafc;color:var(--muted);font-weight:600;padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);}
+.modal-tbl td{padding:5px 8px;text-align:center;border-bottom:1px solid #f1f5f9;}
+.modal-tbl .td-l{text-align:left;}
+.modal-uph-below{color:#dc2626;font-weight:700;}
+.modal-uph-above{color:#16a34a;font-weight:700;}
+/* ★ 인당생산성 뱃지 */
+.uph-note{font-size:9px;color:#94a3b8;font-weight:400;margin-left:4px;}
+#loadingOverlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;z-index:999;font-size:15px;font-weight:700;color:var(--blue);}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-right:12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:768px){
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
+  .two-col,.three-col{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div id="loadingOverlay"><div class="spinner"></div>데이터 로딩 중...</div>
+
+<header>
+  <h1>📊 생산성 대시보드</h1>
+  <span id="lastUpdate"></span>
+  <button id="refreshBtn" onclick="loadAll()">↺ 새로고침</button>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('today',this)">오늘 현황</button>
+  <button class="tab-btn" onclick="switchTab('person',this)">담당자별 집계</button>
+  <button class="tab-btn" onclick="switchTab('task',this)">업무별 집계</button>
+  <button class="tab-btn" onclick="switchTab('calendar',this)">📅 달력</button>
+</div>
+
+<!-- 오늘 현황 -->
+<div id="tab-today" class="tab-panel active">
+  <div class="kpi-row">
+    <div class="kpi-card" style="border-color:var(--blue)"><div class="label">오늘 업무</div><div class="value" id="kpi-total" style="color:var(--blue)">-</div></div>
+    <div class="kpi-card" style="border-color:var(--yellow)"><div class="label">대기</div><div class="value" id="kpi-wait" style="color:var(--yellow)">-</div></div>
+    <div class="kpi-card" style="border-color:var(--cyan)"><div class="label">진행</div><div class="value" id="kpi-ing" style="color:var(--cyan)">-</div></div>
+    <div class="kpi-card" style="border-color:var(--green)"><div class="label">완료</div><div class="value" id="kpi-done" style="color:var(--green)">-</div></div>
+    <div class="kpi-card" style="border-color:var(--orange)"><div class="label">물량</div><div class="value" id="kpi-vol" style="color:var(--orange)">-</div></div>
+  </div>
+  <div class="card one-col">
+    <div class="card-title">👥 인원별 상태
+      <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:4px;">
+        <span style="display:inline-block;width:8px;height:8px;background:#dbeafe;border-radius:2px;border:1px solid #93c5fd;"></span> 진행
+        <span style="display:inline-block;width:8px;height:8px;background:#f3e8ff;border-radius:2px;border:1px solid #c4b5fd;margin-left:6px;"></span> 일시정지
+        <span style="display:inline-block;width:8px;height:8px;background:#fef9c3;border-radius:2px;border:1px solid #fde047;margin-left:6px;"></span> 대기
+        <span style="display:inline-block;width:8px;height:8px;background:#dcfce7;border-radius:2px;border:1px solid #86efac;margin-left:6px;"></span> 완료
+      </span>
+    </div>
+    <div id="personGrid" class="person-grid"><div style="color:var(--muted)">로딩 중...</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">
+        📈 업무 카테고리별 생산성
+        <div class="filter-group" id="prodFilter">
+          <button class="f-btn active" onclick="setProdMode('month',this)">월별</button>
+          <button class="f-btn" onclick="setProdMode('year',this)">연별</button>
+          <button class="f-btn" onclick="setProdMode('all',this)">전체</button>
+        </div>
+        <select class="month-select" id="prodMonthSel" onchange="renderProdChart()"></select>
+      </div>
+      <!-- ★ 범례에 인당생산성 설명 추가 -->
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--blue)"></span>인당생산성(좌) <span class="uph-note">출고=팀수량÷인원</span></span>
+        <span><span class="legend-dot" style="background:var(--orange)"></span>UPH(우)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="prodChart"></canvas></div>
+      <div class="tbl-wrap"><table id="prodTable">
+        <!-- ★ 헤더에 인당생산성 컬럼 추가 -->
+        <thead><tr><th>카테고리</th><th>투입인원</th><th>완료물량</th><th>투입시간(h)</th><th>인당생산성</th><th>UPH</th><th>완료건수</th></tr></thead>
+        <tbody id="prodTbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 월별 투입 인원수</div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--blue)"></span>스탭(좌)</span>
+        <span><span class="legend-dot" style="background:var(--orange);border-radius:50%"></span>헬퍼(우)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="staffCountChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card one-col">
+    <div class="card-title">⏱💰 월별 투입시간 &amp; 인건비 &amp; 단위당 비용</div>
+    <div class="chart-legend">
+      <span><span class="legend-dot" style="background:rgba(8,145,178,.8)"></span>스탭시간(좌)</span>
+      <span><span class="legend-dot" style="background:rgba(124,58,237,.7);border-radius:50%"></span>헬퍼시간(좌)</span>
+      <span><span class="legend-dot" style="background:rgba(22,163,74,.8)"></span>인건비(우1)</span>
+      <span><span class="legend-dot" style="background:#ea580c;border-radius:50%"></span>단위당비용(우2)</span>
+    </div>
+    <div class="chart-wrap" style="height:240px"><canvas id="monthlyCostChart"></canvas></div>
+  </div>
+  <div class="card one-col">
+    <div class="card-title">📋 월별 종합 현황</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>월</th><th>스탭인원</th><th>스탭시간(h)</th><th>헬퍼인원</th><th>헬퍼시간(h)</th><th>총인원</th><th>총시간(h)</th><th>인건비(원)</th><th>단위당비용(원)</th></tr></thead>
+      <tbody id="monthlyTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- 담당자별 -->
+<div id="tab-person" class="tab-panel">
+  <div class="card one-col">
+    <div class="card-title">
+      👤 담당자 × 업무 집계
+      <!-- ★ 안내 문구 추가 -->
+      <span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:4px;">※ 출고: 팀수량÷참여인원으로 개인 기여분 계산</span>
+      <div class="filter-group" id="personFilter">
+        <button class="f-btn active" onclick="setPersonMode('month',this)">월별</button>
+        <button class="f-btn" onclick="setPersonMode('year',this)">연별</button>
+        <button class="f-btn" onclick="setPersonMode('all',this)">전체</button>
+      </div>
+      <select class="month-select" id="personMonthSel" onchange="renderPersonTab()"></select>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>성명</th><th>주요업무</th><th>완료물량</th><th>투입시간(h)</th><th>UPH</th><th>완료건수</th><th>인건비(원)</th><th>단위당비용(원)</th></tr></thead>
+      <tbody id="personTbody"></tbody>
+    </table></div>
+  </div>
+  <div class="three-col">
+    <div class="card"><div class="card-title">📦 완료물량</div><div class="chart-wrap"><canvas id="p1Chart"></canvas></div></div>
+    <div class="card"><div class="card-title">⏱ 투입시간</div><div class="chart-wrap"><canvas id="p2Chart"></canvas></div></div>
+    <div class="card"><div class="card-title">⚡ UPH</div><div class="chart-wrap"><canvas id="p3Chart"></canvas></div></div>
+  </div>
+</div>
+
+<!-- 업무별 -->
+<div id="tab-task" class="tab-panel">
+  <div class="card one-col">
+    <div class="card-title">
+      🗂 업무별 집계
+      <div class="filter-group" id="taskFilter">
+        <button class="f-btn active" onclick="setTaskMode('month',this)">월별</button>
+        <button class="f-btn" onclick="setTaskMode('year',this)">연별</button>
+        <button class="f-btn" onclick="setTaskMode('all',this)">전체</button>
+      </div>
+      <select class="month-select" id="taskMonthSel" onchange="renderTaskTab()"></select>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>주요업무</th><th>완료건수</th><th>참여인원</th><th>총완료물량</th><th>총투입시간(h)</th><th>평균UPH</th><th>총인건비(원)</th><th>단위당비용(원)</th></tr></thead>
+      <tbody id="taskTbody"></tbody>
+    </table></div>
+  </div>
+  <div class="three-col">
+    <div class="card"><div class="card-title">📦 총완료물량</div><div class="chart-wrap"><canvas id="t1Chart"></canvas></div></div>
+    <div class="card"><div class="card-title">⏱ 총투입시간</div><div class="chart-wrap"><canvas id="t2Chart"></canvas></div></div>
+    <div class="card"><div class="card-title">⚡ 평균UPH</div><div class="chart-wrap"><canvas id="t3Chart"></canvas></div></div>
+  </div>
+</div>
+
+<!-- 달력 탭 -->
+<div id="tab-calendar" class="tab-panel">
+  <div class="kpi-row" style="grid-template-columns:repeat(5,1fr);">
+    <div class="kpi-card" style="border-color:#2563eb"><div class="label">출고 물량</div><div class="value" id="cal-kpi-out" style="color:#2563eb">-</div></div>
+    <div class="kpi-card" style="border-color:#ea580c"><div class="label">반품 물량</div><div class="value" id="cal-kpi-ret" style="color:#ea580c">-</div></div>
+    <div class="kpi-card" style="border-color:#16a34a"><div class="label">입고 물량</div><div class="value" id="cal-kpi-in"  style="color:#16a34a">-</div></div>
+    <div class="kpi-card" style="border-color:#7c3aed"><div class="label">총 물량</div><div class="value" id="cal-kpi-total" style="color:#7c3aed">-</div></div>
+    <div class="kpi-card" style="border-color:#ca8a04"><div class="label">총 인건비</div><div class="value" id="cal-kpi-cost" style="color:#ca8a04;font-size:16px">-</div></div>
+  </div>
+  <div class="card one-col" style="padding:12px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button class="cal-nav-btn" onclick="calMove(-1)">&#8249; 이전달</button>
+      <span id="calTitle" style="font-size:16px;font-weight:800;color:#1e293b;"></span>
+      <button class="cal-nav-btn" onclick="calMove(1)">다음달 &#8250;</button>
+    </div>
+    <div class="cal-grid" id="calHeader">
+      <div class="cal-dow sun">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+      <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div>
+      <div class="cal-dow sat">토</div>
+    </div>
+    <div class="cal-grid" id="calBody"></div>
+  </div>
+</div>
+
+<!-- 모달 -->
+<div id="calModal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="modalTitle" style="font-size:15px;font-weight:800;"></span>
+      <button class="modal-close" onclick="document.getElementById('calModal').classList.remove('on')">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  설정
+// ================================================================
+const PUB1     = '2PACX-1vRUfMFSuffYkj3M6XO9bDj5lntIPZhvb6cjiFsdDM2ldKvSr-v6GQIQBmzPHy-3CObSBt01ERRqUJUG';
+const PUB2     = '2PACX-1vRJYHt_VTGuSO9zC2PtFkTp8uWe9qdtLMd5NADYk7VEFJrmbu4kESL0M-Eq37b1qZXrvg9tEBGMni0r';
+const CODE_GID = '1810364891';
+
+const COL_FALLBACK = {
+  sheet1: { vol:7, hour:8, start:5, end:6 },
+  sheet2: { vol:7, hour:9, start:5, end:6 },
+};
+
+const STATUS = { DONE:'완료', ING:'진행', WAIT:'대기', PAUSE:'일시정지' };
+
+let CATEGORY_MAP = {};
+
+const TYPE_GROUP = {
+  '천일':'출고', '대화물':'출고', '소화물':'출고', '하이가드':'출고',
+  '수출':'출고', '쿠팡':'출고',
+  '반품':'반품', '가전반품':'반품', '매트반품':'반품', '패브릭반품':'반품',
+  '입고':'입고',
+  '선작업':'기타', '청소':'기타',
+};
+
+// ================================================================
+//  CSV 파싱
+// ================================================================
+function csvUrl(pub, gid) {
+  return `https://docs.google.com/spreadsheets/d/e/${pub}/pub?output=csv&gid=${gid}`;
+}
+async function fetchCSV(pub, gid) {
+  const res  = await fetch(csvUrl(pub, gid));
+  const text = await res.text();
+  return parseCSV(text);
+}
+function parseCSV(text) {
+  return text.trim().split('\n').map(line => {
+    const cols = []; let cur = '', inQ = false;
+    for (const c of line) {
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+function buildCategoryMap(rows) {
+  const map = {};
+  rows.slice(1).forEach(r => {
+    const code = (r[0] || '').trim();
+    const cat  = (r[2] || '').trim();
+    if (code && cat) map[code] = cat;
+  });
+  return map;
+}
+
+function getCategory(code, detail) {
+  if (CATEGORY_MAP[code]) return CATEGORY_MAP[code];
+  const d = (detail || '').trim();
+  return d || code || '기타';
+}
+
+function getType(code, detail) {
+  const cat = getCategory(code, detail);
+  return TYPE_GROUP[cat] || '기타';
+}
+
+// ★ 출고 여부 판단
+function isShipping(code, detail) {
+  return getType(code, detail) === '출고';
+}
+
+function isHelper(name) { return name.includes('헬퍼'); }
+
+// ================================================================
+//  헤더 컬럼 감지
+// ================================================================
+function detectCols(headerRow, fallback) {
+  const h    = headerRow.map(c => c.trim());
+  const find = (...kws) => {
+    for (const kw of kws) {
+      const i = h.findIndex(c => c.includes(kw));
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+  return {
+    vol:   find('수량')         >= 0 ? find('수량')         : fallback.vol,
+    hour:  find('누적작업시간') >= 0 ? find('누적작업시간') : fallback.hour,
+    start: find('시작시간')     >= 0 ? find('시작시간')     : fallback.start,
+    end:   find('종료시간')     >= 0 ? find('종료시간')     : fallback.end,
+  };
+}
+
+// ================================================================
+//  날짜 파싱
+// ================================================================
+function toDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  if (/^(18|19[0]0)/.test(s)) return null;
+  const isPM = s.includes('오후');
+  s = s.replace('오전','').replace('오후','').trim();
+  s = s.replace(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\s*/,
+    (_,y,m,d) => `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} `).trim();
+  s = s.replace(/(\d{4}-\d{2}-\d{2})(\d{2}:)/, '$1 $2');
+  const dt = new Date(s);
+  if (isNaN(dt.getTime())) return null;
+  if (isPM && dt.getHours() < 12) dt.setHours(dt.getHours() + 12);
+  return dt;
+}
+
+function parseTaskDate(task) {
+  const id = task.id;
+  let m = id.match(/^(\d{2})\.(\d{1,2})\.(\d{1,2})/);
+  if (m) {
+    const [,yy,mo,dd] = m;
+    const year = 2000 + +yy;
+    const ym  = `${year}-${mo.padStart(2,'0')}`;
+    const ymd = `${year}-${mo.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+    return { year, month:+mo, day:+dd, ym, ymd };
+  }
+  const s = toDate(task.start);
+  if (s) {
+    const year = s.getFullYear(), mo = s.getMonth()+1, dd = s.getDate();
+    const ym  = `${year}-${String(mo).padStart(2,'0')}`;
+    const ymd = `${year}-${String(mo).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    return { year, month:mo, day:dd, ym, ymd };
+  }
+  return null;
+}
+
+// ================================================================
+//  숫자 파싱
+// ================================================================
+function parseNum(v) {
+  if (v == null || v === '') return 0;
+  const n = parseFloat(String(v).replace(/[,\s원₩개h시간\/]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+function fmt(n, unit='') {
+  if (n == null || isNaN(n)) return '-';
+  return Math.round(n).toLocaleString('ko-KR') + unit;
+}
+
+// ================================================================
+//  행 정규화
+// ================================================================
+function normalizeRow(raw, cols) {
+  const recordedHour = parseNum(raw[cols.hour]);
+  const startDt = toDate(raw[cols.start]);
+  const endDt   = toDate(raw[cols.end]);
+
+  let hour = 0;
+  if (recordedHour > 0) {
+    hour = recordedHour;
+  } else if (startDt && endDt) {
+    const diff = (endDt - startDt) / 3600000;
+    if (diff > 0 && diff <= 16) hour = +diff.toFixed(4);
+  }
+
+  const status = (raw[4] || '').trim();
+  return {
+    id:      (raw[0] || '').trim(),
+    code:    (raw[1] || '').trim(),
+    detail:  (raw[2] || '').trim(),
+    name:    (raw[3] || '').trim(),
+    status,
+    isDone:  status === STATUS.DONE  || status.includes('완료'),
+    isIng:   status === STATUS.ING   || status.includes('진행'),
+    isPause: status === STATUS.PAUSE || status.includes('일시정지'),
+    isWait:  status === STATUS.WAIT  || status.includes('대기'),
+    start:   (raw[cols.start] || '').trim(),
+    end:     (raw[cols.end]   || '').trim(),
+    vol:     parseNum(raw[cols.vol]),
+    hour,
+  };
+}
+
+// ================================================================
+//  ★ 중복 제거만 수행 (수량 보정 없음)
+//  개인UPH는 각자 수량÷시간으로 계산, 팀UPH는 개인UPH 평균
+// ================================================================
+function applyVolumeCorrection(tasks) {
+  const seen = new Set();
+  return tasks.filter(t => {
+    const key = `${t.id}|${t.name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// ================================================================
+//  ★ 개인UPH 계산: 담당자별 수량÷시간
+//  팀UPH = 개인UPH들의 평균
+// ================================================================
+function calcPersonUph(tasks) {
+  // 담당자별 집계
+  const pMap = {};
+  tasks.forEach(t => {
+    if (!t.name) return;
+    if (!pMap[t.name]) pMap[t.name] = { vol: 0, hour: 0 };
+    pMap[t.name].vol  += t.vol;
+    pMap[t.name].hour += t.hour;
+  });
+  // 개인UPH 목록
+  const uphs = Object.values(pMap)
+    .filter(p => p.hour > 0)
+    .map(p => p.vol / p.hour);
+  if (uphs.length === 0) return { personUphs: {}, teamUph: 0 };
+  // 팀UPH = 개인UPH 평균
+  const teamUph = uphs.reduce((s, u) => s + u, 0) / uphs.length;
+  const personUphs = {};
+  Object.entries(pMap).forEach(([name, p]) => {
+    personUphs[name] = p.hour > 0 ? p.vol / p.hour : 0;
+  });
+  return { personUphs, teamUph };
+}
+
+// ================================================================
+//  전역 상태
+// ================================================================
+let TASKS = [];         // 원본 (중복 제거 전)
+let TASKS_ADJ = [];     // ★ 수량 보정 후 (집계에 사용)
+let HOURLY_RATE = {};
+let CHARTS = {};
+let prodMode = 'month', personMode = 'month', taskMode = 'month';
+
+// ================================================================
+//  인건비
+// ================================================================
+function buildHourlyRate(laborRows) {
+  const map = {};
+  laborRows.slice(1).forEach(r => {
+    const name = (r[0]||'').trim();
+    const rate = parseNum(r[1]);
+    if (name && rate > 0) map[name] = rate;
+  });
+  return map;
+}
+function laborCost(name, hour) { return (HOURLY_RATE[name] || 0) * hour; }
+
+// ================================================================
+//  데이터 로드
+// ================================================================
+async function loadAll() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  try {
+    const [rows1, rows2, laborRows, codeRows] = await Promise.all([
+      fetchCSV(PUB1, '1272922114'),
+      fetchCSV(PUB2, '1908325385'),
+      fetchCSV(PUB2, '1928958544'),
+      fetchCSV(PUB1, CODE_GID),
+    ]);
+
+    CATEGORY_MAP = buildCategoryMap(codeRows);
+
+    const cols1  = detectCols(rows1[0] || [], COL_FALLBACK.sheet1);
+    const cols2  = detectCols(rows2[0] || [], COL_FALLBACK.sheet2);
+    const tasks1 = rows1.slice(1).filter(r => r[0] && r[0].trim()).map(r => normalizeRow(r, cols1));
+    const tasks2 = rows2.slice(1).filter(r => r[0] && r[0].trim()).map(r => normalizeRow(r, cols2));
+
+    // 원본 병합 (오늘 현황 등 상태 표시용)
+    const seenRaw = new Set();
+    TASKS = [...tasks2, ...tasks1].filter(t => {
+      const key = `${t.id}|${t.name}`;
+      if (seenRaw.has(key)) return false;
+      seenRaw.add(key); return true;
+    });
+
+    // ★ 수량 보정 적용 (집계용)
+    TASKS_ADJ = applyVolumeCorrection(TASKS);
+
+    HOURLY_RATE = buildHourlyRate(laborRows);
+    buildMonthOptions();
+    renderAll();
+    document.getElementById('lastUpdate').textContent =
+      '최종 갱신: ' + new Date().toLocaleString('ko-KR');
+  } catch(e) {
+    console.error(e);
+    alert('데이터 로드 오류: ' + e.message);
+  }
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// ================================================================
+//  필터
+// ================================================================
+function buildMonthOptions() {
+  const months = new Set();
+  TASKS.forEach(t => { const d = parseTaskDate(t); if (d) months.add(d.ym); });
+  const sorted = [...months].sort().reverse();
+  ['prodMonthSel','personMonthSel','taskMonthSel'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = sorted.map(m => {
+      const [y,mo] = m.split('-');
+      return `<option value="${m}">${y}년 ${+mo}월</option>`;
+    }).join('');
+  });
+}
+
+// ★ 집계에는 TASKS_ADJ 사용
+function filterTasks(mode, selId) {
+  const ym      = document.getElementById(selId)?.value || '';
+  const thisYear = new Date().getFullYear();
+  return TASKS_ADJ.filter(t => {
+    const d = parseTaskDate(t);
+    if (!d) return false;
+    if (mode === 'all')   return true;
+    if (mode === 'year')  return d.year === thisYear;
+    if (mode === 'month') return d.ym === ym;
+    return false;
+  });
+}
+
+function setProdMode(mode, btn) {
+  prodMode = mode;
+  document.querySelectorAll('#prodFilter .f-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('prodMonthSel').classList.toggle('visible', mode==='month');
+  renderProdChart();
+}
+function setPersonMode(mode, btn) {
+  personMode = mode;
+  document.querySelectorAll('#personFilter .f-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('personMonthSel').classList.toggle('visible', mode==='month');
+  renderPersonTab();
+}
+function setTaskMode(mode, btn) {
+  taskMode = mode;
+  document.querySelectorAll('#taskFilter .f-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('taskMonthSel').classList.toggle('visible', mode==='month');
+  renderTaskTab();
+}
+
+// ================================================================
+//  차트
+// ================================================================
+function makeChart(id, config) {
+  if (CHARTS[id]) CHARTS[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  CHARTS[id] = new Chart(ctx.getContext('2d'), config);
+}
+
+// ================================================================
+//  오늘 현황 (TASKS 원본 사용 — 상태 표시이므로 보정 불필요)
+// ================================================================
+function renderToday() {
+  const now      = new Date();
+  const yy       = String(now.getFullYear()).slice(2);
+  const mo       = String(now.getMonth()+1);
+  const dd       = String(now.getDate());
+  const pfx      = `${yy}.${mo}.${dd}`;
+  const pfx0     = `${yy}.${mo.padStart(2,'0')}.${dd.padStart(2,'0')}`;
+  const todayYmd = `${now.getFullYear()}-${mo.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+
+  const today = TASKS.filter(t => {
+    if (t.id.startsWith(pfx) || t.id.startsWith(pfx0)) return true;
+    if (t.isIng || t.isWait || t.isPause) return true;
+    if (t.start && t.start.slice(0,10) === todayYmd) return true;
+    if (t.end   && t.end.slice(0,10)   === todayYmd) return true;
+    return false;
+  });
+
+  document.getElementById('kpi-total').textContent = today.length;
+  document.getElementById('kpi-wait').textContent  = today.filter(t=>t.isWait).length;
+  document.getElementById('kpi-ing').textContent   = today.filter(t=>t.isIng||t.isPause).length;
+  document.getElementById('kpi-done').textContent  = today.filter(t=>t.isDone).length;
+  document.getElementById('kpi-vol').textContent   =
+    fmt(today.filter(t=>t.isDone).reduce((s,t)=>s+t.vol,0));
+
+  const byPerson = {};
+  today.forEach(t => { (byPerson[t.name||'미지정'] ||= []).push(t); });
+
+  const grid = document.getElementById('personGrid');
+  if (!Object.keys(byPerson).length) {
+    grid.innerHTML = '<div style="color:var(--muted)">오늘 업무 없음</div>';
+    return;
+  }
+
+  grid.innerHTML = Object.entries(byPerson).map(([name, rows]) => {
+    const hasPause = rows.some(t => t.isPause);
+    const hasIng   = rows.some(t => t.isIng);
+    const hasWait  = rows.some(t => t.isWait);
+    const cardCls  = hasPause ? 'has-pause' : hasIng ? 'has-ing' : hasWait ? 'has-wait' : 'all-done';
+
+    const badges = rows.map(t => {
+      let cls, icon;
+      if (t.isPause)     { cls = 'b-pause'; icon = '⏸ '; }
+      else if (t.isDone) { cls = 'b-done';  icon = ''; }
+      else if (t.isIng)  { cls = 'b-ing';   icon = ''; }
+      else               { cls = 'b-wait';  icon = ''; }
+      const cat = getCategory(t.code, t.detail);
+      return `<span class="badge ${cls}" title="${t.detail}">${icon}${cat}</span>`;
+    }).join(' ');
+
+    const statusText  = hasPause ? '⏸ 일시정지' : hasIng ? '▶ 진행중' : hasWait ? '⏳ 대기' : '✅ 완료';
+    const statusColor = hasPause ? '#7c3aed' : hasIng ? '#0891b2' : hasWait ? '#ca8a04' : '#16a34a';
+
+    return `<div class="person-card ${cardCls}">
+      <div class="person-name">${name} <span style="font-size:10px;font-weight:400;color:${statusColor}">${statusText}</span></div>
+      <div class="person-task">${badges}</div>
+    </div>`;
+  }).join('');
+}
+
+// ================================================================
+//  ★ 카테고리별 생산성 (TASKS_ADJ 사용 — 수량 보정 적용)
+// ================================================================
+function renderProdChart() {
+  const rows   = filterTasks(prodMode, 'prodMonthSel').filter(t => t.isDone);
+  const catMap = {};
+  rows.forEach(t => {
+    const cat = getCategory(t.code, t.detail);
+    (catMap[cat] ||= {vol:0,hour:0,people:new Set(),cnt:0});
+    catMap[cat].vol  += t.vol;   // ★ 보정된 수량
+    catMap[cat].hour += t.hour;
+    catMap[cat].people.add(t.name);
+    catMap[cat].cnt++;
+  });
+  const cats = Object.keys(catMap).sort();
+  // ★ 인당생산성: 보정된 수량의 합 ÷ 인원수
+  const perP = cats.map(c => catMap[c].people.size ? catMap[c].vol/catMap[c].people.size : 0);
+  const uph  = cats.map(c => catMap[c].hour ? catMap[c].vol/catMap[c].hour : 0);
+
+  makeChart('prodChart',{type:'bar',data:{labels:cats,datasets:[
+    {label:'인당생산성',data:perP,backgroundColor:'rgba(37,99,235,.75)',yAxisID:'y'},
+    {label:'UPH',data:uph,backgroundColor:'rgba(234,88,12,.75)',yAxisID:'y2'},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{y:{position:'left',title:{display:true,text:'인당생산성'}},
+            y2:{position:'right',title:{display:true,text:'UPH'},grid:{drawOnChartArea:false}}}}});
+
+  const tbody = document.getElementById('prodTbody');
+  tbody.innerHTML = cats.map((c,i)=>{
+    const d=catMap[c]; const u=uph[i];
+    const uc=u>=50?'uph-good':u>=20?'uph-mid':'uph-bad';
+    // ★ 인당생산성 열 추가
+    return `<tr><td class="td-l">${c}</td><td>${d.people.size}</td><td>${fmt(d.vol)}</td><td>${d.hour.toFixed(1)}</td><td>${perP[i].toFixed(1)}</td><td class="${uc}">${u.toFixed(1)}</td><td>${d.cnt}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--muted)">완료 데이터 없음</td></tr>';
+}
+
+// ================================================================
+//  월별 통합 차트
+// ================================================================
+function renderMonthlyCharts() {
+  const mMap = {};
+  TASKS_ADJ.forEach(t => {
+    const d = parseTaskDate(t); if (!d) return;
+    const m = d.ym;
+    (mMap[m] ||= {staffP:new Set(),helperP:new Set(),staffH:0,helperH:0,vol:0,labor:0});
+    if (isHelper(t.name)) { mMap[m].helperP.add(t.name); mMap[m].helperH += t.hour; }
+    else                  { mMap[m].staffP.add(t.name);  mMap[m].staffH  += t.hour; }
+    if (t.isDone) { mMap[m].vol += t.vol; mMap[m].labor += laborCost(t.name, t.hour); }
+  });
+
+  const months = Object.keys(mMap).sort();
+
+  makeChart('staffCountChart',{type:'bar',data:{labels:months,datasets:[
+    {type:'bar', label:'스탭(명)',data:months.map(m=>mMap[m].staffP.size), backgroundColor:'rgba(37,99,235,.75)',yAxisID:'y'},
+    {type:'line',label:'헬퍼(명)',data:months.map(m=>mMap[m].helperP.size),borderColor:'#ea580c',backgroundColor:'rgba(234,88,12,.2)',pointRadius:4,tension:.3,yAxisID:'y2'},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{y:{position:'left',title:{display:true,text:'스탭(명)'},ticks:{color:'#2563eb'}},
+            y2:{position:'right',title:{display:true,text:'헬퍼(명)'},ticks:{color:'#ea580c'},grid:{drawOnChartArea:false}}}}});
+
+  const sH=months.map(m=>mMap[m].staffH), hH=months.map(m=>mMap[m].helperH);
+  const cost=months.map(m=>mMap[m].labor);
+  const uc=months.map(m=>mMap[m].vol>0?mMap[m].labor/mMap[m].vol:0);
+
+  makeChart('monthlyCostChart',{type:'bar',data:{labels:months,datasets:[
+    {type:'bar', label:'스탭시간(h)',data:sH, backgroundColor:'rgba(8,145,178,.75)',yAxisID:'yH',stack:'h',order:4},
+    {type:'bar', label:'헬퍼시간(h)',data:hH, backgroundColor:'rgba(124,58,237,.55)',yAxisID:'yH',stack:'h',order:3},
+    {type:'line',label:'인건비(원)', data:cost,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#16a34a',tension:.3,yAxisID:'yC',order:2},
+    {type:'line',label:'단위당비용(원/개)',data:uc,borderColor:'#ea580c',backgroundColor:'rgba(234,88,12,.08)',borderWidth:2,pointRadius:4,pointStyle:'rectRot',pointBackgroundColor:'#ea580c',tension:.3,yAxisID:'yU',order:1},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,font:{size:11},padding:8}},
+      tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;return ctx.dataset.yAxisID==='yH'?ctx.dataset.label+': '+v.toFixed(1)+'h':ctx.dataset.label+': '+fmt(v,'원');}}}},
+    scales:{
+      yH:{position:'left',stacked:true,title:{display:true,text:'투입시간(h)',color:'#0891b2'},ticks:{color:'#0891b2',callback:v=>v+'h'}},
+      yC:{position:'right',title:{display:true,text:'인건비(원)',color:'#16a34a'},ticks:{color:'#16a34a',callback:v=>v>=1000000?(v/1000000).toFixed(1)+'M':fmt(v)},grid:{drawOnChartArea:false}},
+      yU:{position:'right',title:{display:true,text:'단위당비용(원)',color:'#ea580c'},ticks:{color:'#ea580c',callback:v=>fmt(v,'원')},grid:{drawOnChartArea:false}}}}});
+
+  const tbody = document.getElementById('monthlyTbody');
+  tbody.innerHTML = months.map(m=>{
+    const mm=mMap[m];
+    const sc=mm.staffP.size,hc=mm.helperP.size,sh=mm.staffH,hh=mm.helperH,c=mm.labor,v=mm.vol;
+    return `<tr><td>${m}</td><td>${sc}</td><td>${sh.toFixed(1)}</td><td>${hc}</td><td>${hh.toFixed(1)}</td><td>${sc+hc}</td><td>${(sh+hh).toFixed(1)}</td><td>${c>0?fmt(c,'원'):'-'}</td><td>${v>0?fmt(c/v,'원'):'-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="color:var(--muted)">데이터 없음</td></tr>';
+}
+
+// ================================================================
+//  ★ 담당자별 (TASKS_ADJ 사용)
+// ================================================================
+function renderPersonTab() {
+  const rows = filterTasks(personMode,'personMonthSel').filter(t=>t.isDone);
+  const pMap = {};
+  rows.forEach(t=>{
+    (pMap[t.name||'미지정'] ||= {name:t.name,cats:new Set(),vol:0,hour:0,cnt:0,labor:0});
+    pMap[t.name].cats.add(getCategory(t.code,t.detail));
+    pMap[t.name].vol   += t.vol;   // ★ 보정된 수량
+    pMap[t.name].hour  += t.hour;
+    pMap[t.name].cnt++;
+    pMap[t.name].labor += laborCost(t.name, t.hour);
+  });
+  const entries = Object.values(pMap).sort((a,b)=>b.vol-a.vol);
+  const tbody   = document.getElementById('personTbody');
+  tbody.innerHTML = entries.map(p=>{
+    const uph=p.hour>0?p.vol/p.hour:0;
+    const uc=uph>=50?'uph-good':uph>=20?'uph-mid':'uph-bad';
+    const unitC=p.vol>0&&p.labor>0?p.labor/p.vol:0;
+    return `<tr><td class="td-l">${p.name}</td><td class="td-l">${[...p.cats].join('/')}</td><td>${fmt(p.vol)}</td><td>${p.hour.toFixed(1)}</td><td class="${uc}">${uph.toFixed(1)}</td><td>${p.cnt}</td><td>${p.labor>0?fmt(p.labor,'원'):'-'}</td><td>${unitC>0?fmt(unitC,'원'):'-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted)">완료 데이터 없음</td></tr>';
+
+  const names=entries.map(p=>p.name);
+  [['p1Chart',entries.map(p=>p.vol),'rgba(37,99,235,.75)'],
+   ['p2Chart',entries.map(p=>p.hour),'rgba(8,145,178,.75)'],
+   ['p3Chart',entries.map(p=>p.hour>0?p.vol/p.hour:0),'rgba(124,58,237,.75)']
+  ].forEach(([id,data,color])=>makeChart(id,{type:'bar',data:{labels:names,datasets:[{data,backgroundColor:color}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}}));
+}
+
+// ================================================================
+//  ★ 업무별 (TASKS_ADJ 사용)
+// ================================================================
+function renderTaskTab() {
+  const rows = filterTasks(taskMode,'taskMonthSel').filter(t=>t.isDone);
+  const tMap = {};
+  rows.forEach(t=>{
+    const cat = getCategory(t.code, t.detail);
+    (tMap[cat] ||= {people:new Set(),vol:0,hour:0,cnt:0,labor:0});
+    tMap[cat].people.add(t.name);
+    tMap[cat].vol   += t.vol;   // ★ 보정된 수량
+    tMap[cat].hour  += t.hour;
+    tMap[cat].cnt++;
+    tMap[cat].labor += laborCost(t.name, t.hour);
+  });
+  const entries=Object.entries(tMap).sort((a,b)=>b[1].vol-a[1].vol);
+  const tbody=document.getElementById('taskTbody');
+  tbody.innerHTML=entries.map(([cat,d])=>{
+    const uph=d.hour>0?d.vol/d.hour:0;
+    const uc=uph>=50?'uph-good':uph>=20?'uph-mid':'uph-bad';
+    const unitC=d.vol>0&&d.labor>0?d.labor/d.vol:0;
+    return `<tr><td class="td-l">${cat}</td><td>${d.cnt}</td><td>${d.people.size}</td><td>${fmt(d.vol)}</td><td>${d.hour.toFixed(1)}</td><td class="${uc}">${uph.toFixed(1)}</td><td>${d.labor>0?fmt(d.labor,'원'):'-'}</td><td>${unitC>0?fmt(unitC,'원'):'-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted)">완료 데이터 없음</td></tr>';
+
+  const cats=entries.map(([c])=>c);
+  [['t1Chart',entries.map(([,d])=>d.vol),'rgba(37,99,235,.75)'],
+   ['t2Chart',entries.map(([,d])=>d.hour),'rgba(8,145,178,.75)'],
+   ['t3Chart',entries.map(([,d])=>d.hour>0?d.vol/d.hour:0),'rgba(124,58,237,.75)']
+  ].forEach(([id,data,color])=>makeChart(id,{type:'bar',data:{labels:cats,datasets:[{data,backgroundColor:color}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}}));
+}
+
+// ================================================================
+//  전체 렌더 / 탭 전환
+// ================================================================
+function renderAll() {
+  renderToday();
+  renderProdChart();
+  renderMonthlyCharts();
+  renderPersonTab();
+  renderTaskTab();
+  renderCalendar();
+  ['prodMonthSel','personMonthSel','taskMonthSel'].forEach(id=>
+    document.getElementById(id)?.classList.add('visible'));
+}
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'calendar') renderCalendar();
+}
+
+// ================================================================
+//  한국 공휴일
+// ================================================================
+const LUNAR_TABLE = {
+  2024:{seol:[[2,9],[2,10],[2,11]],buddha:[5,15],chuseok:[[9,16],[9,17],[9,18]]},
+  2025:{seol:[[1,28],[1,29],[1,30]],buddha:[5,5],chuseok:[[10,5],[10,6],[10,7]]},
+  2026:{seol:[[2,16],[2,17],[2,18]],buddha:[5,24],chuseok:[[9,24],[9,25],[9,26]]},
+  2027:{seol:[[2,5],[2,6],[2,7]],buddha:[5,13],chuseok:[[10,14],[10,15],[10,16]]},
+  2028:{seol:[[1,26],[1,27],[1,28]],buddha:[5,2],chuseok:[[10,2],[10,3],[10,4]]},
+};
+function getKoreanHolidays(year) {
+  const map={};
+  const add=(m,d,name)=>{const key=`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(!map[key])map[key]=name;};
+  add(1,1,'신정');add(3,1,'삼일절');add(5,5,'어린이날');
+  add(6,6,'현충일');add(8,15,'광복절');add(10,3,'개천절');add(10,9,'한글날');add(12,25,'크리스마스');
+  const lt=LUNAR_TABLE[year];
+  if(lt){
+    ['설날 연휴','설날','설날 연휴'].forEach((n,i)=>add(lt.seol[i][0],lt.seol[i][1],n));
+    add(lt.buddha[0],lt.buddha[1],'부처님오신날');
+    ['추석 연휴','추석','추석 연휴'].forEach((n,i)=>add(lt.chuseok[i][0],lt.chuseok[i][1],n));
+  }
+  return map;
+}
+const HOLIDAY_CACHE={};
+function holidays(year){if(!HOLIDAY_CACHE[year])HOLIDAY_CACHE[year]=getKoreanHolidays(year);return HOLIDAY_CACHE[year];}
+
+// ================================================================
+//  달력 (TASKS_ADJ 사용)
+// ================================================================
+const TYPE_COLOR = { 출고:'#2563eb', 반품:'#ea580c', 입고:'#16a34a', 기타:'#94a3b8' };
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+
+function calMove(dir) {
+  calMonth += dir;
+  if (calMonth < 0)  { calMonth=11; calYear--; }
+  if (calMonth > 11) { calMonth=0;  calYear++; }
+  renderCalendar();
+}
+
+function buildDayMap(year, month) {
+  const dayMap = {};
+  TASKS_ADJ.forEach(t => {
+    if (!t.isDone) return;
+    const d = parseTaskDate(t);
+    if (!d || d.year!==year || d.month!==month+1) return;
+    const key = d.ymd;
+    if (!dayMap[key]) dayMap[key]={out:0,ret:0,inb:0,outH:0,retH:0,inbH:0,outTasks:[],retTasks:[],inbTasks:[],tasks:[]};
+    const type = getType(t.code, t.detail);
+    if (type==='출고'){dayMap[key].out+=t.vol;dayMap[key].outH+=t.hour;dayMap[key].outTasks.push(t);}
+    if (type==='반품'){dayMap[key].ret+=t.vol;dayMap[key].retH+=t.hour;dayMap[key].retTasks.push(t);}
+    if (type==='입고'){dayMap[key].inb+=t.vol;dayMap[key].inbH+=t.hour;dayMap[key].inbTasks.push(t);}
+    dayMap[key].tasks.push(t);
+  });
+  return dayMap;
+}
+
+function calcTypeAvgUph() {
+  // ★ 타입별로 담당자 개인UPH 평균을 구함
+  const typePersonMap = {};
+  TASKS_ADJ.forEach(t=>{
+    if(!t.isDone||!t.name) return;
+    const type=getType(t.code,t.detail);
+    if(!['출고','반품','입고'].includes(type)) return;
+    if(!typePersonMap[type]) typePersonMap[type]={};
+    if(!typePersonMap[type][t.name]) typePersonMap[type][t.name]={vol:0,h:0};
+    typePersonMap[type][t.name].vol += t.vol;
+    typePersonMap[type][t.name].h   += t.hour;
+  });
+  const result={};
+  Object.entries(typePersonMap).forEach(([type,pMap])=>{
+    const uphs=Object.values(pMap).filter(p=>p.h>0).map(p=>p.vol/p.h);
+    result[type] = uphs.length>0 ? uphs.reduce((s,u)=>s+u,0)/uphs.length : 0;
+  });
+  return result;
+}
+
+function renderCalendar() {
+  if (!TASKS_ADJ.length) return;
+  const year=calYear, month=calMonth;
+  document.getElementById('calTitle').textContent=`${year}년 ${month+1}월`;
+
+  const dayMap=buildDayMap(year,month);
+  const hdays=holidays(year);
+  const avgUph=calcTypeAvgUph();
+  const today=new Date();
+
+  let sumOut=0,sumRet=0,sumIn=0,sumCost=0;
+  Object.values(dayMap).forEach(d=>{
+    sumOut+=d.out;sumRet+=d.ret;sumIn+=d.inb;
+    d.tasks.forEach(t=>{sumCost+=laborCost(t.name,t.hour);});
+  });
+  document.getElementById('cal-kpi-out').textContent   = fmt(sumOut);
+  document.getElementById('cal-kpi-ret').textContent   = fmt(sumRet);
+  document.getElementById('cal-kpi-in').textContent    = fmt(sumIn);
+  document.getElementById('cal-kpi-total').textContent = fmt(sumOut+sumRet+sumIn);
+  document.getElementById('cal-kpi-cost').textContent  = sumCost>0?fmt(sumCost,'원'):'-';
+
+  const firstDay=new Date(year,month,1).getDay();
+  const lastDate=new Date(year,month+1,0).getDate();
+  const prevLast=new Date(year,month,0).getDate();
+
+  let cells='';
+  for(let i=0;i<firstDay;i++){
+    const d=prevLast-firstDay+1+i;
+    cells+=`<div class="cal-cell other-month"><div class="cal-date">${d}</div></div>`;
+  }
+
+  for(let d=1;d<=lastDate;d++){
+    const mm=String(month+1).padStart(2,'0');
+    const dd=String(d).padStart(2,'0');
+    const key=`${year}-${mm}-${dd}`;
+    const dow=new Date(year,month,d).getDay();
+    const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;
+    const isHoliday=!!hdays[key];
+    const holidayName=hdays[key]||'';
+    const dayData=dayMap[key];
+    const hasData=!!dayData;
+
+    let cellClass='';
+    if(isToday) cellClass+=' today';
+    if(isHoliday) cellClass+=' holiday';
+    else if(!hasData) cellClass+=' no-data';
+
+    let dateClass='';
+    if(dow===0||isHoliday) dateClass='hol';
+    else if(dow===6) dateClass='sat';
+
+    const holTag=isHoliday?`<span class="cal-holiday-name">${holidayName}</span>`:'';
+
+    let bars='';
+    if(hasData){
+      [{key:'out',tKey:'outTasks',label:'출고',type:'출고'},
+       {key:'ret',tKey:'retTasks',label:'반품',type:'반품'},
+       {key:'inb',tKey:'inbTasks',label:'입고',type:'입고'}
+      ].forEach(({key:vk,tKey,label,type})=>{
+        const vol=dayData[vk];
+        if(vol<=0) return;
+        const typeTasks=dayData[tKey]||[];
+        const {teamUph} = calcPersonUph(typeTasks);
+        const avg=avgUph[type]||0;
+        const isBelow=avg>0&&teamUph>0&&teamUph<avg*0.95;
+        const volCls=isBelow?'uph-below':'uph-above';
+        const uphStr=teamUph>0?`${teamUph.toFixed(0)}/h`:'';
+        const uphCls=isBelow?'cal-bar-uph uph-below':'cal-bar-uph uph-above';
+        bars+=`<div class="cal-bar">
+          <div class="cal-bar-dot" style="background:${TYPE_COLOR[type]}"></div>
+          <span class="cal-bar-label">${label}</span>
+          <span class="cal-bar-vol ${volCls}">${vol.toLocaleString()}</span>
+          ${uphStr?`<span class="${uphCls}">(${uphStr})</span>`:''}
+        </div>`;
+      });
+    }
+
+    const clickAttr=hasData?`onclick="openModal('${key}')"`:'';
+    cells+=`<div class="cal-cell${cellClass}" ${clickAttr}>
+      <div class="cal-date ${dateClass}">${d}</div>
+      ${holTag}${bars}
+    </div>`;
+  }
+
+  const total=firstDay+lastDate;
+  const trailing=total%7===0?0:7-(total%7);
+  for(let i=1;i<=trailing;i++){
+    cells+=`<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+  }
+  document.getElementById('calBody').innerHTML=cells;
+}
+
+// ================================================================
+//  모달
+// ================================================================
+function openModal(ymd) {
+  const [y,m,d]=ymd.split('-').map(Number);
+  const dayTasks=TASKS_ADJ.filter(t=>{const dt=parseTaskDate(t);return dt&&dt.ymd===ymd&&t.isDone;});
+  if(!dayTasks.length) return;
+
+  const avgUph=calcTypeAvgUph();
+  const hday=holidays(y)[ymd]||'';
+  document.getElementById('modalTitle').textContent=`${y}년 ${m}월 ${d}일${hday?' · '+hday:''} 세부 현황`;
+
+  const byType={};
+  dayTasks.forEach(t=>{
+    const type=getType(t.code,t.detail);
+    (byType[type]||=[]).push(t);
+  });
+
+  const total={vol:0,hour:0,cost:0};
+  dayTasks.forEach(t=>{total.vol+=t.vol;total.hour+=t.hour;total.cost+=laborCost(t.name,t.hour);});
+  // ★ 전체 팀평균UPH
+  const {teamUph: totalTeamUph} = calcPersonUph(dayTasks);
+  const totalUph = totalTeamUph>0 ? totalTeamUph.toFixed(1) : '-';
+
+  let html=`<div class="modal-kpi-row">
+    <div class="modal-kpi"><div class="mk-label">총 물량</div><div class="mk-val" style="color:#7c3aed">${fmt(total.vol)}</div></div>
+    <div class="modal-kpi"><div class="mk-label">총 시간</div><div class="mk-val">${total.hour.toFixed(1)}h</div></div>
+    <div class="modal-kpi"><div class="mk-label">평균 UPH</div><div class="mk-val">${totalUph}</div></div>
+    <div class="modal-kpi"><div class="mk-label">인건비</div><div class="mk-val" style="font-size:13px">${total.cost>0?fmt(total.cost,'원'):'-'}</div></div>
+  </div>`;
+
+  ['출고','반품','입고','기타'].forEach(type=>{
+    if(!byType[type]) return;
+    const tasks=byType[type];
+    const typeAvg=avgUph[type]||0;
+
+    const byDetail={};
+    tasks.forEach(t=>{
+      const detailKey=t.detail||getCategory(t.code,t.detail);
+      (byDetail[detailKey]||=[]).push(t);
+    });
+
+    const sv=tasks.reduce((s,t)=>s+t.vol,0);
+    const sh=tasks.reduce((s,t)=>s+t.hour,0);
+    const sc=tasks.reduce((s,t)=>s+laborCost(t.name,t.hour),0);
+    const sp=new Set(tasks.map(t=>t.name)).size;
+
+    // ★ 타입 전체 팀평균UPH
+    const {teamUph: typeTeamUph} = calcPersonUph(tasks);
+    const su = typeTeamUph>0 ? typeTeamUph.toFixed(1) : '-';
+    const corrNote = '';
+
+    let rows='';
+    Object.entries(byDetail).forEach(([detailKey,ts])=>{
+      const cv=ts.reduce((s,t)=>s+t.vol,0);
+      const ch=ts.reduce((s,t)=>s+t.hour,0);
+      const cc=ts.reduce((s,t)=>s+laborCost(t.name,t.hour),0);
+
+      // ★ 담당자별 개인UPH 계산
+      const {personUphs, teamUph} = calcPersonUph(ts);
+      const teamUphStr = teamUph>0 ? teamUph.toFixed(1) : '-';
+      const isBelow = typeAvg>0 && teamUph>0 && teamUph<typeAvg*0.95;
+      const uphCls = isBelow ? 'modal-uph-below' : 'modal-uph-above';
+
+      // 담당자명: 개인UPH 표시
+      const personUphStr = Object.entries(personUphs)
+        .map(([n,u])=>`${n}: <b>${u.toFixed(1)}</b>`)
+        .join(' &nbsp;|&nbsp; ');
+
+      rows+=`<tr>
+        <td class="td-l">${detailKey}</td>
+        <td class="td-l" style="font-size:11px">${personUphStr}</td>
+        <td>${fmt(cv)}</td>
+        <td>${ch.toFixed(1)}h</td>
+        <td class="${uphCls}">${teamUphStr}<br><span style="font-size:9px;color:var(--muted);font-weight:400">팀평균</span></td>
+        <td style="font-size:11px">${cc>0?fmt(cc,'원'):'-'}</td>
+      </tr>`;
+    });
+
+    html+=`<div class="modal-section">
+      <div class="modal-section-title" style="background:${TYPE_COLOR[type]}">
+        ${type}${corrNote} &nbsp;|&nbsp; ${fmt(sv)}개 &nbsp; ${sh.toFixed(1)}h &nbsp; UPH ${su} &nbsp; ${sp}명
+      </div>
+      <table class="modal-tbl">
+        <thead><tr><th>업무</th><th>담당자</th><th>물량</th><th>시간</th><th>UPH</th><th>인건비</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  });
+
+  document.getElementById('modalBody').innerHTML=html;
+  document.getElementById('calModal').classList.add('on');
+}
+
+function closeModal(e){if(e.target.id==='calModal')document.getElementById('calModal').classList.remove('on');}
+
+setInterval(loadAll, 5*60*1000);
+loadAll();
+</script>
+</body>
+</html>
